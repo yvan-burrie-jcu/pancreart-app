@@ -6,7 +6,7 @@
 
     <string name="placeholder_text">PLACEHOLDER TEXT</string>
 
-    <!-- Login Related -->
+    <!-- Login -->
     <string name="title_activity_login">LoginActivity</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -16,5 +16,28 @@
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Warnings</string>
+    <string name="notification_channel_description">Statuses of blood and device components.</string>
+
+    <string name="title_glucose_low">Glucose Low</string>
+    <string name="title_glucose_high">Glucose High</string>
+    <string name="title_glucose_normal">Glucose Normal</string>
+    <string name="title_pod_battery_low">Pod Battery Low</string>
+    <string name="title_sensor_failure">Sensor Failure</string>
+    <string name="title_insulin_reservoir_low">Insulin Reservoir Low</string>
+    <string name="title_delivery_failure">Delivery Failure</string>
+    <string name="title_insulin_low">Insulin Low</string>
+
+    <string name="context_text_glucose_low">Warning! Glucose levels are low.</string>
+    <string name="context_text_glucose_high">Warning! Glucose levels are high.</string>
+    <string name="context_text_glucose_normal">Awesome! Glucose levels have returned to normal.</string>
+    <string name="context_text_pod_battery_low">Warning! Pod battery is low.</string>
+    <string name="context_text_sensor_failure">Warning! Sensor has failed to read data.</string>
+    <string name="context_text_insulin_reservoir_low">Warning! Insulin reservoir is low.</string>
+    <string name="context_text_delivery_failure">Warning! Pod has failed to deliver insulin.</string>
+    <string name="context_text_insulin_low">Warning! Insulin levels are below threshold.</string>
+
 
 </resources>

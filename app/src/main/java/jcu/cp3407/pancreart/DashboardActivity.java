@@ -35,6 +35,8 @@ public class DashboardActivity extends AppCompatActivity {
     private int insulinLevel = 45;
     private int batteryLevel = 20;
 
+    Storage storage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

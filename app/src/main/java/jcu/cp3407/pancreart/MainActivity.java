@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -40,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Test notifications with intent to DashboardActivity
         notificationManager.notify(notificationID++, glucoseLow.build());
-
     }
 
     private void createNotifications() {
@@ -86,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
         } else {
-            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -100,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
         } else {
-            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
         }
     }
 

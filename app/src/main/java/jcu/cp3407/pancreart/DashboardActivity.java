@@ -1,5 +1,6 @@
 package jcu.cp3407.pancreart;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -16,6 +17,8 @@ import androidx.core.content.res.ResourcesCompat;
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
 public class DashboardActivity extends AppCompatActivity {
+
+    Context context;
 
     private Toolbar toolbar;
 
@@ -36,6 +39,8 @@ public class DashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
+        context = getApplicationContext();
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

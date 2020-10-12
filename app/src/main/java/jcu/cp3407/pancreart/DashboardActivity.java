@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.bluetooth.*;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +63,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         // todo: forget about BT for now
 //        setupBluetooth();
+
+        storage = new Storage(context);
     }
 
     // Here are all bluetooth events to handle

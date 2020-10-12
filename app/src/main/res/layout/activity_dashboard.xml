@@ -7,6 +7,13 @@
     android:gravity="center"
     tools:context=".DashboardActivity">
 
+    <!-- TODO: fix constraint on toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        tools:ignore="MissingConstraints" />
+
     <!-- Glucose -->
     <TableRow
         android:layout_width="match_parent"

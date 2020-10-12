@@ -1,15 +1,24 @@
 package jcu.cp3407.pancreart;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
+import jcu.cp3407.pancreart.ui.login.LoginActivity;
+
 public class DashboardActivity extends AppCompatActivity {
+
+    private Toolbar toolbar;
+
     private ProgressBar glucoseProgressBar;
     private ProgressBar insulinProgressBar;
     private ProgressBar batteryProgressBar;
@@ -27,10 +36,33 @@ public class DashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         findViewByIds();
         setProgressBars();
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_login:
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.menu_item_graph:
+                // start graph activity
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void setProgressBars() {

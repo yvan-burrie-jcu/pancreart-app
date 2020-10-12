@@ -14,13 +14,13 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
+
     private final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 0;
     private final int MY_PERMISSIONS_READ_EXTERNAL_STORAGE = 0;
     private int notificationID = 0;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder glucoseLow, glucoseHigh, glucoseNormal, podBatteryLow,
             sensorFailure, insulinReservoirLow, deliveryFailure, insulinLow;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

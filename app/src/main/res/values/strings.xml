@@ -1,4 +1,5 @@
 <resources>
+
     <string name="app_name">PancreArt</string>
     <string name="glucose">Glucose (mmol/L)</string>
     <string name="insulin">Insulin (%)</string>
@@ -40,6 +41,5 @@
     <string name="context_text_insulin_reservoir_low">Warning! Insulin reservoir is low.</string>
     <string name="context_text_delivery_failure">Warning! Pod has failed to deliver insulin.</string>
     <string name="context_text_insulin_low">Warning! Insulin levels are below threshold.</string>
-
 
 </resources>

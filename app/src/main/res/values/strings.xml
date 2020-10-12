@@ -6,6 +6,7 @@
     <string name="battery">Battery (%)</string>
     <string name="login">Login</string>
     <string name="graph">Graph</string>
+    <string name="pod">Pod</string>
 
     <string name="placeholder_text">PLACEHOLDER TEXT</string>
 

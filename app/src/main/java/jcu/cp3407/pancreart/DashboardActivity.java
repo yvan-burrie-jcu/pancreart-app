@@ -53,13 +53,19 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_item_login:
+            case R.id.menu_item_login: {
                 Intent intent = new Intent(this, LoginActivity.class);
                 startActivity(intent);
                 return true;
-            case R.id.menu_item_graph:
+            }
+            case R.id.menu_item_graph: {
                 // start graph activity
                 return true;
+            }
+            case R.id.menu_item_pod: {
+                // start connecting or disconnecting pod
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }

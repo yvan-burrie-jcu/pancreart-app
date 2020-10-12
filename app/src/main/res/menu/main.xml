@@ -13,4 +13,7 @@
     <item
         android:id="@+id/menu_item_graph"
         android:title="@string/graph" />
+    <item
+        android:id="@+id/menu_item_pod"
+        android:title="@string/pod" />
 </menu>

@@ -35,8 +35,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     Context context;
 
-    enum Intents
-    {
+    enum Intents {
         REQUEST_ENABLE_BT,
         LOGIN_PAGE,
     }
@@ -44,6 +43,9 @@ public class DashboardActivity extends AppCompatActivity {
     private Toolbar toolbar;
 
     private LineChart chart;
+
+    private Menu menu;
+    private MenuItem loginLogout;
 
     private ProgressBar glucoseProgressBar;
     private ProgressBar insulinProgressBar;
@@ -152,7 +154,8 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
+        this.menu = menu;
+        getMenuInflater().inflate(R.menu.main, this.menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -174,6 +177,15 @@ public class DashboardActivity extends AppCompatActivity {
             }
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == resultCode) {
+            loginLogout.setTitle(R.string.logout);
         }
     }
 
@@ -225,6 +237,7 @@ public class DashboardActivity extends AppCompatActivity {
         glucoseTextView = findViewById(R.id.glucose_text);
         insulinTextView = findViewById(R.id.insulin_text);
         batteryTextView = findViewById(R.id.battery_text);
+        loginLogout = findViewById(R.id.menu_item_login);
     }
 
     private void createNotifications() {

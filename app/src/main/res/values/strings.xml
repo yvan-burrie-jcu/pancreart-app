@@ -5,6 +5,7 @@
     <string name="insulin">Insulin (%)</string>
     <string name="battery">Battery (%)</string>
     <string name="login">Login</string>
+    <string name="logout">Logout</string>
     <string name="graph">Graph</string>
     <string name="pod">Pod</string>
     <string name="home_address">34.70.63.29</string>

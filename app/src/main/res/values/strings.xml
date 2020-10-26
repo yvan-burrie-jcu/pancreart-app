@@ -43,5 +43,8 @@
     <string name="context_text_delivery_failure">Warning! Pod has failed to deliver insulin.</string>
     <string name="context_text_insulin_low">Warning! Insulin levels are below threshold.</string>
     <string name="device_not_support_bt">Your crappy device does not even support BlueTooth.</string>
+    <string name="_1m">1M</string>
+    <string name="_10m">10M</string>
+    <string name="_1h">1H</string>
 
 </resources>

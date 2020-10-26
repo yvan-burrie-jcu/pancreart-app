@@ -52,6 +52,7 @@
         android:layout_height="42dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="?attr/actionModeCloseDrawable" />
+        app:srcCompat="?attr/actionModeCloseDrawable"
+        android:contentDescription="@string/backbutton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

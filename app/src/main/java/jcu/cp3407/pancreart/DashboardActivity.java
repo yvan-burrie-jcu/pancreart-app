@@ -29,6 +29,7 @@ public class DashboardActivity extends AppCompatActivity {
     enum Intents
     {
         REQUEST_ENABLE_BT,
+        LOGIN_PAGE,
     }
 
     private Toolbar toolbar;
@@ -59,7 +60,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         context = getApplicationContext();
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         chart = findViewById(R.id.chart);
@@ -113,8 +114,8 @@ public class DashboardActivity extends AppCompatActivity {
                         startActivityForResult(intent, Intents.REQUEST_ENABLE_BT.ordinal());
 
                         // todo: consider requesting user to go to settings instead
-//                    intent = new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
-//                    startActivity(intent);
+//                        intent = new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
+//                        startActivity(intent);
                         break;
                     }
                 }
@@ -133,15 +134,15 @@ public class DashboardActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.menu_item_login: {
                 Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, Intents.LOGIN_PAGE.ordinal());
                 return true;
             }
             case R.id.menu_item_graph: {
-                // start graph activity
+                // todo: start graph activity
                 return true;
             }
             case R.id.menu_item_pod: {
-                // start connecting or disconnecting pod
+                // todo: start connecting or disconnecting pod
                 return true;
             }
             default:

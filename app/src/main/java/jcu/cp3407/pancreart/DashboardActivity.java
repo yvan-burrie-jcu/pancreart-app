@@ -20,6 +20,8 @@ import androidx.core.content.res.ResourcesCompat;
 
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
+import com.github.mikephil.charting.charts.LineChart;
+
 public class DashboardActivity extends AppCompatActivity {
 
     Context context;
@@ -30,6 +32,8 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private Toolbar toolbar;
+
+    private LineChart chart;
 
     private ProgressBar glucoseProgressBar;
     private ProgressBar insulinProgressBar;
@@ -57,6 +61,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        chart = findViewById(R.id.chart);
 
         findViewByIds();
         setProgressBars();

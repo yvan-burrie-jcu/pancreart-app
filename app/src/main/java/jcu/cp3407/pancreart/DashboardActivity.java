@@ -1,9 +1,12 @@
 package jcu.cp3407.pancreart;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.bluetooth.*;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,6 +19,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
@@ -53,6 +60,13 @@ public class DashboardActivity extends AppCompatActivity {
 
     Storage storage;
 
+    private final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 0;
+    private final int MY_PERMISSIONS_READ_EXTERNAL_STORAGE = 0;
+    private int notificationID = 0;
+    private NotificationManagerCompat notificationManager;
+    private NotificationCompat.Builder glucoseLow, glucoseHigh, glucoseNormal, podBatteryLow,
+            sensorFailure, insulinReservoirLow, deliveryFailure, insulinLow;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +85,16 @@ public class DashboardActivity extends AppCompatActivity {
 //        setupBluetooth(); // todo: forget about BT for now
 
         storage = new Storage(context);
+
+        notificationManager = NotificationManagerCompat.from(this);
+        createNotifications();
+
+        // Testing for enabling permissions
+        enableReadStoragePermission();
+        enableWriteStoragePermission();
+
+        // Test notifications with intent to DashboardActivity
+        notificationManager.notify(notificationID++, glucoseLow.build());
     }
 
     // Here are all bluetooth events to handle
@@ -198,5 +222,70 @@ public class DashboardActivity extends AppCompatActivity {
         glucoseTextView = findViewById(R.id.glucose_text);
         insulinTextView = findViewById(R.id.insulin_text);
         batteryTextView = findViewById(R.id.battery_text);
+    }
+
+    private void createNotifications() {
+        Intent dashboardIntent = new Intent(this, DashboardActivity.class);
+        dashboardIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                dashboardIntent, 0);
+        // Create additional intents to go to different activity and pass through to desired notification.
+
+        glucoseLow = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_glucose_low), getString(R.string.context_text_glucose_low)
+        );
+        glucoseHigh = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_glucose_high), getString(R.string.context_text_glucose_high)
+        );
+        glucoseNormal = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_glucose_normal), getString(R.string.context_text_glucose_normal)
+        );
+        podBatteryLow = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_pod_battery_low), getString(R.string.context_text_pod_battery_low)
+        );
+        sensorFailure = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_sensor_failure), getString(R.string.context_text_sensor_failure)
+        );
+        insulinReservoirLow = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_insulin_reservoir_low), getString(R.string.context_text_insulin_reservoir_low)
+        );
+        deliveryFailure = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_delivery_failure), getString(R.string.context_text_delivery_failure)
+        );
+        insulinLow = new Notifications().buildHighPriority(this, pendingIntent,
+                getString(R.string.title_insulin_low), getString(R.string.context_text_insulin_low)
+        );
+    }
+
+    private void enableReadStoragePermission() {
+        // Check if permission is in current activity.
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted, request permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
+        } else {
+//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void enableWriteStoragePermission() {
+        // Check if permission is in current activity.
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted, request permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+        } else {
+//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void createGlucoseLowNotification() {
+
     }
 }

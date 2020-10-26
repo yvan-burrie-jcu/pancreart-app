@@ -67,8 +67,7 @@ public class DashboardActivity extends AppCompatActivity {
         findViewByIds();
         setProgressBars();
 
-        // todo: forget about BT for now
-//        setupBluetooth();
+//        setupBluetooth(); // todo: forget about BT for now
 
         storage = new Storage(context);
     }
@@ -83,43 +82,36 @@ public class DashboardActivity extends AppCompatActivity {
 
                 switch (message.what) {
                     case Bluetooth.MESSAGE_READ: {
-
-                        byte[] readbuf = (byte[]) message.obj;
-                        String stringReceived = new String(readbuf);
-
-                        // do some task based on received string
-
+                        String data = new String((byte[]) message.obj);
+                        // todo: handle data received
                         break;
                     }
                     case Bluetooth.MESSAGE_WRITE: {
-
-                        String sampleData = "00"; // send some crap
-
-                        if (message.obj != null) {
-                            Bluetooth.ConnectedThread connectedThread = bluetooth.new ConnectedThread((BluetoothSocket) message.obj);
-                            connectedThread.write(sampleData.getBytes());
-                        }
+                        BluetoothSocket socket = (BluetoothSocket) message.obj;
+                        String data = "00"; // todo: sample data to send
+                        bluetooth.writeWithConnectedThread(socket, data);
                         break;
                     }
                     case Bluetooth.CONNECTED: {
-                        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.bt_device_connected, Toast.LENGTH_SHORT).show();
                         break;
                     }
                     case Bluetooth.CONNECTING: {
-                        Toast.makeText(context, "Connecting...", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.bt_device_connecting, Toast.LENGTH_SHORT).show();
                         break;
                     }
                     case Bluetooth.NO_SOCKET_FOUND: {
-                        Toast.makeText(context, "No socket found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.bt_device_not_found, Toast.LENGTH_SHORT).show();
                         break;
                     }
                     case Bluetooth.ADAPTER_UNAVAILABLE: {
-                        Toast.makeText(context, R.string.device_not_support_bt, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.bt_device_not_supported, Toast.LENGTH_SHORT).show();
                         break;
                     }
                     case Bluetooth.ADAPTER_DISABLED: {
                         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                        startActivityForResult(intent, DashboardActivity.Intents.REQUEST_ENABLE_BT.ordinal());
+                        startActivityForResult(intent, Intents.REQUEST_ENABLE_BT.ordinal());
+
                         // todo: consider requesting user to go to settings instead
 //                    intent = new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
 //                    startActivity(intent);

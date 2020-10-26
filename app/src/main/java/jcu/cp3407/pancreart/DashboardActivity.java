@@ -29,6 +29,8 @@ import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
 
+import java.util.Objects;
+
 public class DashboardActivity extends AppCompatActivity {
 
     Context context;
@@ -76,6 +78,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         chart = findViewById(R.id.chart);
 
@@ -266,8 +269,6 @@ public class DashboardActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
-        } else {
-//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -280,12 +281,6 @@ public class DashboardActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
-        } else {
-//            Toast.makeText(this, "Permission is already granted", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void createGlucoseLowNotification() {
-
     }
 }

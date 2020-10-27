@@ -1,18 +1,13 @@
 package jcu.cp3407.pancreart;
 
 import android.bluetooth.*;
-import android.content.*;
 import android.os.Handler;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Set;
 import java.util.UUID;
 
 public class Bluetooth {
-
-    Context context;
 
     Set<BluetoothDevice> devices;
 
@@ -33,28 +28,54 @@ public class Bluetooth {
     Handler handler;
 
     Bluetooth(Handler handler) {
-        // register callbacks for handling bluetooth events
+        // register handler for bluetooth events
         this.handler = handler;
 
         // start accepting connections
         AcceptThread acceptThread = new AcceptThread();
         acceptThread.start();
 
-        if (adapter == null) {
-            handler.obtainMessage(ADAPTER_UNAVAILABLE).sendToTarget();
-        } else if (!adapter.isEnabled()) {
-            handler.obtainMessage(ADAPTER_DISABLED).sendToTarget();
+        if (checkAdapter()) {
+            return;
         }
 
         // todo: need to find out how to use proxy and profile
-//        adapter.getProfileProxy(context, profileListener, BluetoothProfile.HEALTH);
-//        adapter.closeProfileProxy(BluetoothProfile.HEALTH, headset);
+        /*
+        BluetoothProfile.ServiceListener profileListener = new BluetoothProfile.ServiceListener() {
+            @Override
+            public void onServiceConnected(int i, BluetoothProfile proxy) {
+                if (i == BluetoothProfile.HEADSET) {
+                    headset = (BluetoothHeadset) proxy;
+                }
+            }
+            @Override
+            public void onServiceDisconnected(int i) {
+                if (i == BluetoothProfile.HEADSET) {
+                    headset = null;
+                }
+            }
+        };
+        adapter.getProfileProxy(context, profileListener, BluetoothProfile.HEALTH);
+        adapter.closeProfileProxy(BluetoothProfile.HEALTH, headset);
+        */
 
         updateDevices();
 
         // todo: use this when requesting to connect
 //        ConnectThread connectThread = new ConnectThread(device);
 //        connectThread.start();
+    }
+
+    private boolean checkAdapter() {
+        if (adapter == null) {
+            handler.obtainMessage(ADAPTER_UNAVAILABLE).sendToTarget();
+            return false;
+        }
+        if (!adapter.isEnabled()) {
+            handler.obtainMessage(ADAPTER_DISABLED).sendToTarget();
+            return false;
+        }
+        return true;
     }
 
     private void updateDevices() {
@@ -69,47 +90,29 @@ public class Bluetooth {
         }
     }
 
-    private BluetoothProfile.ServiceListener profileListener = new BluetoothProfile.ServiceListener() {
-
-        @Override
-        public void onServiceConnected(int i, BluetoothProfile proxy) {
-            if (i == BluetoothProfile.HEADSET) {
-                headset = (BluetoothHeadset) proxy;
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(int i) {
-            if (i == BluetoothProfile.HEADSET) {
-                headset = null;
-            }
-        }
-    };
-
     public class AcceptThread extends Thread {
 
         private final BluetoothServerSocket serverSocket;
 
         public AcceptThread() {
-            BluetoothServerSocket tmp = null;
+            BluetoothServerSocket tempServerSocket = null;
             try {
                 // MY_UUID is the app's UUID string, also used by the client code
-                tmp = adapter.listenUsingRfcommWithServiceRecord("NAME", MY_UUID);
+                tempServerSocket = adapter.listenUsingRfcommWithServiceRecord("NAME", MY_UUID);
             } catch (IOException e) {
             }
-            serverSocket = tmp;
+            serverSocket = tempServerSocket;
         }
 
         public void run() {
-            BluetoothSocket socket = null;
-            // Keep listening until exception occurs or a socket is returned
             while (true) {
+                // Keep listening until exception occurs or a socket is returned
+                BluetoothSocket socket;
                 try {
                     socket = serverSocket.accept();
                 } catch (IOException e) {
                     break;
                 }
-
                 // If a connection was accepted
                 if (socket != null) {
                     // Do work to manage the connection (in a separate thread)
@@ -117,6 +120,15 @@ public class Bluetooth {
                 }
             }
         }
+    }
+
+    public boolean writeWithConnectedThread(BluetoothSocket socket, String data) {
+        if (socket != null) {
+            Bluetooth.ConnectedThread connectedThread = new ConnectedThread(socket);
+            connectedThread.write(data.getBytes());
+            return true;
+        }
+        return false;
     }
 
     private class ConnectThread extends Thread {
@@ -148,7 +160,6 @@ public class Bluetooth {
                 // Connect the device through the socket. This will block
                 // until it succeeds or throws an exception
                 handler.obtainMessage(CONNECTING).sendToTarget();
-
                 socket.connect();
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
@@ -177,9 +188,9 @@ public class Bluetooth {
 
         private final BluetoothSocket socket;
 
-        private final InputStream mmInStream;
+        private final InputStream inputStream;
 
-        private final OutputStream mmOutStream;
+        private final OutputStream outputStream;
 
         public ConnectedThread(BluetoothSocket socket) {
             this.socket = socket;
@@ -194,8 +205,8 @@ public class Bluetooth {
             } catch (IOException e) {
             }
 
-            mmInStream = tmpIn;
-            mmOutStream = tmpOut;
+            inputStream = tmpIn;
+            outputStream = tmpOut;
         }
 
         public void run() {
@@ -206,7 +217,7 @@ public class Bluetooth {
             while (true) {
                 try {
                     // Read from the InputStream
-                    bytes = mmInStream.read(buffer);
+                    bytes = inputStream.read(buffer);
                     // Send the obtained bytes to the UI activity
                     handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
@@ -218,7 +229,7 @@ public class Bluetooth {
         // Call this from the main activity to send data to the remote device
         public void write(byte[] bytes) {
             try {
-                mmOutStream.write(bytes);
+                outputStream.write(bytes);
             } catch (IOException e) {
             }
         }

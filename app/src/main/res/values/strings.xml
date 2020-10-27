@@ -5,12 +5,15 @@
     <string name="insulin">Insulin (%)</string>
     <string name="battery">Battery (%)</string>
     <string name="login">Login</string>
+    <string name="logout">Logout</string>
     <string name="graph">Graph</string>
     <string name="pod">Pod</string>
+    <string name="backbutton">Back</string>
+    <string name="home_address">34.70.63.29</string>
 
     <string name="placeholder_text">PLACEHOLDER TEXT</string>
 
-    <!-- Login -->
+    <!-- Authentication -->
     <string name="title_activity_login">LoginActivity</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -42,12 +45,17 @@
     <string name="context_text_insulin_reservoir_low">Warning! Insulin reservoir is low.</string>
     <string name="context_text_delivery_failure">Warning! Pod has failed to deliver insulin.</string>
     <string name="context_text_insulin_low">Warning! Insulin levels are below threshold.</string>
-    <string name="device_not_support_bt">Your crappy device does not even support BlueTooth.</string>
+
+    <!-- Bluetooth -->
+    <string name="bt_device_not_supported">Your device does not support BlueTooth.</string>
+    <string name="bt_device_connected">Bluetooth device connected.</string>
+    <string name="bt_device_connecting">Bluetooth device connecting …</string>
+    <string name="bt_device_not_found">Bluetooth socket not found.</string>
+
+    <!-- Fragment -->
     <string name="_1m">1M</string>
     <string name="_10m">10M</string>
     <string name="_1h">1H</string>
-    <string name="backbutton">backButton</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -17,7 +17,7 @@ Button minuteButton;
 Button tenMinuteButton;
 Button hourButton;
 ImageButton backButton;
-
+FrameLayout fragmentContainer;
 
 ArrayList<Fragment> fragments;
 GraphFragment1 graphFragment1;
@@ -35,6 +35,13 @@ FragmentTransaction fragmentTransaction;
         hourButton = findViewById(R.id.hourButton);
 
         backButton = findViewById(R.id.backButton);
+        fragmentContainer = findViewById(R.id.fragmentContainer);
+
+        graphFragment1 = new GraphFragment1();
+        graphFragment2 = new GraphFragment2();
+        graphFragment3 = new GraphFragment3();
+
+        fragments = new ArrayList<>();
 
         fragments.add(graphFragment1);
         fragments.add(graphFragment2);
@@ -59,7 +66,7 @@ FragmentTransaction fragmentTransaction;
             Intent intent = new Intent(this,DashboardActivity.class);
             startActivity(intent);
         }));
-        
+
     }
 
 }

@@ -139,7 +139,8 @@ public class DashboardActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.menu_item_graph: {
-                // start graph activity
+                Intent intent = new Intent(this, GraphActivity.class);
+                startActivity(intent);
                 return true;
             }
             case R.id.menu_item_pod: {

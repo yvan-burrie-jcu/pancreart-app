@@ -7,15 +7,14 @@ import android.bluetooth.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,8 +27,14 @@ import androidx.core.content.res.ResourcesCompat;
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -83,6 +88,25 @@ public class DashboardActivity extends AppCompatActivity {
 
 
         chart = findViewById(R.id.chart);
+        Legend legend = chart.getLegend();
+
+        final XAxis xAxis = chart.getXAxis();
+        xAxis.setDrawGridLines(false);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+        xAxis.setAvoidFirstLastClipping(true);
+
+        chart.getAxisRight().setEnabled(false);
+        chart.setBackgroundColor(Color.parseColor("#FFFFFF"));
+        chart.setGridBackgroundColor(Color.parseColor("#FFFFFF"));
+
+        List<Entry> vals = new ArrayList<>();
+        for (int i = 0; i < 10; ++i)
+        {
+            vals.add(new Entry(i, 100 + 1));
+        }
+        LineData data = new LineData(new LineDataSet(vals, ""));
+        chart.setData(data);
 
         findViewByIds();
         setProgressBars();
@@ -182,8 +206,7 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == resultCode) {
             loginLogout.setTitle(R.string.logout);

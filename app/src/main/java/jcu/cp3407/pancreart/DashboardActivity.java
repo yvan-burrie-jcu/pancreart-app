@@ -78,7 +78,7 @@ public class DashboardActivity extends AppCompatActivity {
 
 
     // Get Blood Events
-    Event[] events;
+    Event[] events; // web server
 
 
     @Override

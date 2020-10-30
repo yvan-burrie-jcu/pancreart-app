@@ -71,6 +71,11 @@ public class DashboardActivity extends AppCompatActivity {
     private NotificationCompat.Builder glucoseLow, glucoseHigh, glucoseNormal, podBatteryLow,
             sensorFailure, insulinReservoirLow, deliveryFailure, insulinLow;
 
+
+    // Get Blood Events
+    Event[] events;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

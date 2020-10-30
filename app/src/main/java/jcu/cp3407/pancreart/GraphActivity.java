@@ -48,18 +48,26 @@ FragmentTransaction fragmentTransaction;
         fragments.add(graphFragment3);
 
         fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(1));
+        fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(0));
+        fragmentTransaction.commit();
+
 
         minuteButton.setOnClickListener((view) -> {
             fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(0));
+            fragmentTransaction.commit();
+
         });
 
         tenMinuteButton.setOnClickListener((view) -> {
             fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(1));
+            fragmentTransaction.commit();
+
         });
 
         hourButton.setOnClickListener((view) -> {
             fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(2));
+            fragmentTransaction.commit();
+
         });
 
         backButton.setOnClickListener((view -> {

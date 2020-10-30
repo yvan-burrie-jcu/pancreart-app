@@ -34,6 +34,7 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DashboardActivity extends AppCompatActivity {
@@ -91,27 +92,8 @@ public class DashboardActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        generateDashboardChart();
 
-        chart = findViewById(R.id.chart);
-        Legend legend = chart.getLegend();
-
-        final XAxis xAxis = chart.getXAxis();
-        xAxis.setDrawGridLines(false);
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
-        xAxis.setAvoidFirstLastClipping(true);
-
-        chart.getAxisRight().setEnabled(false);
-        chart.setBackgroundColor(Color.parseColor("#FFFFFF"));
-        chart.setGridBackgroundColor(Color.parseColor("#FFFFFF"));
-
-        List<Entry> vals = new ArrayList<>();
-        for (int i = 0; i < 10; ++i)
-        {
-            vals.add(new Entry(i, 100 + 1));
-        }
-        LineData data = new LineData(new LineDataSet(vals, ""));
-        chart.setData(data);
 
         findViewByIds();
         setProgressBars();
@@ -218,6 +200,12 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        chart.invalidate(); // Redraw chart
+    }
+
     private void setProgressBars() {
         final int glucoseLowThreshold = 3;
         final int glucoseHighThreshold = 7;
@@ -267,6 +255,62 @@ public class DashboardActivity extends AppCompatActivity {
         insulinTextView = findViewById(R.id.insulin_text);
         batteryTextView = findViewById(R.id.battery_text);
         loginLogout = findViewById(R.id.menu_item_login);
+    }
+
+    private void generateDashboardChart() {
+        // Generate Dashboard chart from current date.
+        chart = findViewById(R.id.chart);
+        Legend legend = chart.getLegend();
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH);
+        int year = calendar.get(Calendar.YEAR);
+
+        // Query database and store as event.
+
+
+
+         // Set X-Axis
+        final XAxis xAxis = chart.getXAxis();
+        xAxis.setDrawGridLines(false);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+        xAxis.setAvoidFirstLastClipping(true);
+
+        chart.getAxisRight().setEnabled(false);
+        chart.setBackgroundColor(getResources().getColor(R.color.white));
+        chart.setGridBackgroundColor(getResources().getColor(R.color.white));
+
+
+        // store all glucose in List<Entry> glucoseData = new ArrayList<>()
+        // store all insulin in List<Entry> insulinData = new ArrayList<>()
+        // calculate median from adding all values and dividing by amount of values in List<Entry>
+
+        // Create LineData objects for each List<Entry> and median value.
+        // LineData glucoseLineData = new LineData(new LineDataSet(glucoseData, "Glucose"));
+        // LineData insulinLineData = new LineData(new LineDataSet(insulinData, "Insulin"));
+        // LineData medianLine = new LineData(new LineDataSet(median, "Median"));
+
+        // Set line colours.
+        // glucoseLineData.setValueTextColor(R.color.line_glucose);
+        // insulinLineData.setValueTextColor(R.color.line_glucose);
+        // medianLine.setValueTextColor(R.color.line_glucose);
+
+
+
+        // chart.setData(glucoseLineData);
+        // chart.setData(insulinLineData);
+        // chart.setData(medianLine);
+
+
+        List<Entry> values = new ArrayList<>();
+        for (int i = 0; i < 10; ++i)
+        {
+            values.add(new Entry(i, 100 + 1));
+        }
+        LineData data = new LineData(new LineDataSet(values, ""));
+        data.setValueTextColor(R.color.line_glucose);
+        chart.setData(data);
     }
 
     private void createNotifications() {

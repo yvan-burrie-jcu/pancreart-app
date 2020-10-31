@@ -8,7 +8,7 @@
     <string name="logout">Logout</string>
     <string name="graph">Graph</string>
     <string name="pod">Pod</string>
-    <string name="backbutton">Back</string>
+    <string name="back_button">Back</string>
     <string name="home_address">34.70.63.29</string>
 
     <string name="placeholder_text">PLACEHOLDER TEXT</string>
@@ -52,10 +52,11 @@
     <string name="bt_device_connecting">Bluetooth device connecting …</string>
     <string name="bt_device_not_found">Bluetooth socket not found.</string>
 
-    <!-- Fragment -->
-    <string name="_1m">1M</string>
-    <string name="_10m">10M</string>
-    <string name="_1h">1H</string>
+    <!-- Graph -->
+    <string name="graph_previous">Previous</string>
+    <string name="graph_current">Current</string>
+    <string name="graph_next">Next</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="submit">Submit</string>
 
 </resources>

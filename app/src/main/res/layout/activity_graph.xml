@@ -11,48 +11,41 @@
         android:layout_width="343dp"
         android:layout_height="525dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.448">
 
     </FrameLayout>
 
     <Button
-        android:id="@+id/minuteButton"
+        android:id="@+id/previous_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="40dp"
-        android:text="@string/_1m"
+        android:text="@string/graph_previous"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/tenMinuteButton" />
+        app:layout_constraintTop_toBottomOf="@id/fragmentContainer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/current_button"/>
 
     <Button
-        android:id="@+id/tenMinuteButton"
+        android:id="@+id/current_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/_10m"
+        android:text="@string/graph_current"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/fragmentContainer"
+        app:layout_constraintLeft_toRightOf="@id/previous_button"
+        app:layout_constraintRight_toLeftOf="@id/next_button" />
 
     <Button
-        android:id="@+id/hourButton"
+        android:id="@+id/next_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/_1h"
+        android:text="@string/graph_next"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.894"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="35dp"
-        android:layout_height="42dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="?attr/actionModeCloseDrawable"
-        android:contentDescription="@string/backbutton" />
+        app:layout_constraintTop_toBottomOf="@id/fragmentContainer"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/current_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

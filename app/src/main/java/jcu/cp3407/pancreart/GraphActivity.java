@@ -1,83 +1,93 @@
 package jcu.cp3407.pancreart;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.PopupWindow;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-
-import java.util.ArrayList;
-
 public class GraphActivity extends AppCompatActivity {
-Button minuteButton;
-Button tenMinuteButton;
-Button hourButton;
-ImageButton backButton;
-FrameLayout fragmentContainer;
+    private GraphFragment graphFragment;
 
-ArrayList<Fragment> fragments;
-GraphFragment1 graphFragment1;
-GraphFragment2 graphFragment2;
-GraphFragment3 graphFragment3;
-FragmentTransaction fragmentTransaction;
+    private int currentDay, currentMonth, currentYear;
+    private int previousDay;
+    private int nextDay;
+    private PopupWindow popupWindow;
+    private DatePicker datePicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
 
-        minuteButton = findViewById(R.id.minuteButton);
-        tenMinuteButton = findViewById(R.id.tenMinuteButton);
-        hourButton = findViewById(R.id.hourButton);
-
-        backButton = findViewById(R.id.backButton);
-        fragmentContainer = findViewById(R.id.fragmentContainer);
-
-        graphFragment1 = new GraphFragment1();
-        graphFragment2 = new GraphFragment2();
-        graphFragment3 = new GraphFragment3();
-
-        fragments = new ArrayList<>();
-
-        fragments.add(graphFragment1);
-        fragments.add(graphFragment2);
-        fragments.add(graphFragment3);
-
-        fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(0));
-        fragmentTransaction.commit();
-
-
-        minuteButton.setOnClickListener((view) -> {
-            fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(0));
-            fragmentTransaction.commit();
-
-        });
-
-        tenMinuteButton.setOnClickListener((view) -> {
-            fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(1));
-            fragmentTransaction.commit();
-
-        });
-
-        hourButton.setOnClickListener((view) -> {
-            fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, fragments.get(2));
-            fragmentTransaction.commit();
-
-        });
-
-        backButton.setOnClickListener((view -> {
-            Intent intent = new Intent(this,DashboardActivity.class);
-            startActivity(intent);
-        }));
-
+        // Display default graph with current date
+        displayGraphFragment();
+        createPopupWindow();
+        setButtonListeners();
     }
 
+    private void createPopupWindow() {
+        final LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final double THREE_QUARTERS = 0.75;
+        int[] screenDimensions = getScreenDimensions();
+
+        assert inflater != null;
+        @SuppressLint("InflateParams") View popupView = inflater.inflate(R.layout.popup_date_picker, null);
+        popupWindow = new PopupWindow(popupView, screenDimensions[0] *= THREE_QUARTERS,
+                screenDimensions[1] *= THREE_QUARTERS, true);
+
+        // Create listener for submit button
+        datePicker = popupView.findViewById(R.id.date_picker);
+        popupView.findViewById(R.id.submit_button).setOnClickListener(v -> {
+            // Show previous day data from SQLite database
+            currentDay = datePicker.getDayOfMonth();
+            currentMonth = datePicker.getMonth();
+            currentYear = datePicker.getYear();
+
+            previousDay = currentDay - 1;
+            nextDay = currentDay + 1;
+            popupWindow.dismiss();
+        });
+    }
+
+    private void displayGraphFragment() {
+        graphFragment = new GraphFragment();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragmentContainer, graphFragment);
+        fragmentTransaction.commit();
+    }
+
+    private int[] getScreenDimensions() {
+        return new int[]{Resources.getSystem().getDisplayMetrics().widthPixels,
+                Resources.getSystem().getDisplayMetrics().heightPixels};
+    }
+
+    private void setButtonListeners() {
+        Button previousButton = findViewById(R.id.previous_button);
+        Button currentButton = findViewById(R.id.current_button);
+        Button nextButton = findViewById(R.id.next_button);
+
+        previousButton.setOnClickListener((view) -> {
+            // Show previous day data from SQLite database
+            graphFragment.update(previousDay, currentMonth, currentYear);
+        });
+
+        currentButton.setOnClickListener((view) -> {
+           // Show date picker widget
+            popupWindow.showAtLocation(graphFragment.getView(), Gravity.CENTER, 0, 0);
+        });
+
+        nextButton.setOnClickListener((view) -> {
+            // Show next day data from SQLite database
+            graphFragment.update(nextDay, currentMonth, currentYear);
+        });
+    }
 }

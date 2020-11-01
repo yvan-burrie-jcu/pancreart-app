@@ -147,7 +147,7 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
-        getMenuInflater().inflate(R.menu.main, this.menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -191,10 +191,14 @@ public class DashboardActivity extends AppCompatActivity {
         final int glucoseHighThreshold = 7;
         final int percentageMiddleThreshold = 50;
         final int percentageLowThreshold = 25;
-        final Drawable breachedThresholdColour = ResourcesCompat.getDrawable(getResources(),
-                R.drawable.circle_breached_threshold_foreground, null);
-        final Drawable middleThresholdColour = ResourcesCompat.getDrawable(getResources(),
-                R.drawable.circle_middle_threshold_foreground, null);
+        final Drawable breachedThresholdColour = ResourcesCompat.getDrawable(
+                getResources(),
+                R.drawable.circle_breached_threshold_foreground,
+                null);
+        final Drawable middleThresholdColour = ResourcesCompat.getDrawable(
+                getResources(),
+                R.drawable.circle_middle_threshold_foreground,
+                null);
 
         // Determine which colour to set.
         if (glucoseLevel >= glucoseHighThreshold || glucoseLevel <= glucoseLowThreshold) {
@@ -272,11 +276,13 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void enableReadStoragePermission() {
         // Check if permission is in current activity.
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+        int permission = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted, request permission.
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(
+                    this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
         }
@@ -284,11 +290,13 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void enableWriteStoragePermission() {
         // Check if permission is in current activity.
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+        int permission = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted, request permission.
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(
+                    this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
         }

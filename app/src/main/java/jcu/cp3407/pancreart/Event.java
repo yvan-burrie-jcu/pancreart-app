@@ -1,15 +1,15 @@
 package jcu.cp3407.pancreart;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class Event {
     private int eventType;
@@ -28,6 +28,7 @@ public class Event {
     }
 
     public void setEventData() { // setting all event object features
+
         // userId = eventData[0]
     }
 
@@ -57,5 +58,13 @@ public class Event {
         System.out.println(eventPostBuffer.names());
 
     }
+
+//    //JSON test method for writing values to a file
+//    private void testJSON(int startTime, int endTIme) throws IOException, JSONException {
+//        getArrayData(12, 2);
+//        JSONArray JSONTestArray = new JSONArray();
+//        FileWriter JSONTest = new FileWriter("C:\\json_test_output.json");
+//        JSONTest.write(JSONTestArray.toString());
+//    }
 
 }

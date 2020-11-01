@@ -24,8 +24,7 @@ public class GraphActivity extends AppCompatActivity {
     private GraphFragment graphFragment;
 
     private int currentDay, currentMonth, currentYear;
-    private int previousDay;
-    private int nextDay;
+    private int previousDay, nextDay;
     private PopupWindow popupWindow;
     private DatePicker datePicker;
 
@@ -65,8 +64,11 @@ public class GraphActivity extends AppCompatActivity {
 
         assert inflater != null;
         @SuppressLint("InflateParams") View popupView = inflater.inflate(R.layout.popup_date_picker, null);
-        popupWindow = new PopupWindow(popupView, screenDimensions[0] *= THREE_QUARTERS,
-                screenDimensions[1] *= THREE_QUARTERS, true);
+        popupWindow = new PopupWindow(
+                popupView,
+                screenDimensions[0] *= THREE_QUARTERS,
+                screenDimensions[1] *= THREE_QUARTERS,
+                true);
 
         // Create listener for submit button
         datePicker = popupView.findViewById(R.id.date_picker);
@@ -79,6 +81,7 @@ public class GraphActivity extends AppCompatActivity {
             previousDay = currentDay - 1;
             nextDay = currentDay + 1;
             popupWindow.dismiss();
+            graphFragment.update(currentDay, currentMonth, currentYear);
         });
     }
 

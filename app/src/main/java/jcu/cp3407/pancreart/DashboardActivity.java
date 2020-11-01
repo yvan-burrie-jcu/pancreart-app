@@ -23,6 +23,13 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Timer;
+
+import jcu.cp3407.pancreart.model.Event;
+import jcu.cp3407.pancreart.model.PodHandler;
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
 public class DashboardActivity extends AppCompatActivity {
@@ -47,24 +54,25 @@ public class DashboardActivity extends AppCompatActivity {
     private TextView insulinTextView;
     private TextView batteryTextView;
 
-    // Testing values
-    private int glucoseLevel = 6;
-    private int insulinLevel = 45;
-    private int batteryLevel = 20;
-
     Bluetooth bluetooth;
 
     Storage storage;
 
     private final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 0;
     private final int MY_PERMISSIONS_READ_EXTERNAL_STORAGE = 0;
-    private int notificationID = 0;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder glucoseLow, glucoseHigh, glucoseNormal, podBatteryLow,
             sensorFailure, insulinReservoirLow, deliveryFailure, insulinLow;
 
-    // Get Blood Events
-    Event[] events; // web server
+    enum NotificationId {
+        BATTERY_LOW,
+        GLUCOSE_AMOUNT,
+        INSULIN_RESERVOIR,
+    }
+
+    int lastBatteryPercent;
+    int lastGlucoseAmount;
+    int lastInsulinPercent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +84,7 @@ public class DashboardActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        findViewByIds();
+        setupViews();
         setProgressBars();
 
 //        setupBluetooth(); // todo: forget about BT for now
@@ -84,14 +92,190 @@ public class DashboardActivity extends AppCompatActivity {
         storage = new Storage(context);
 
         notificationManager = NotificationManagerCompat.from(this);
-        createNotifications();
+        setupNotifications();
 
-        // Testing for enabling permissions
         enableReadStoragePermission();
         enableWriteStoragePermission();
 
-        // Test notifications with intent to DashboardActivity
-        notificationManager.notify(notificationID++, glucoseLow.build());
+        setupRegulator();
+
+        batteryProgressBar.setMax(100);
+        glucoseProgressBar.setMax(300);
+        insulinProgressBar.setMax(100);
+    }
+
+    static List<Event> events = new ArrayList<>();
+
+    private void setupRegulator() {
+
+        // Instantiate a timer that is used to control the threads
+        Timer timer = new Timer();
+
+        // Specify the speed to run threads
+        double speed = 1d / 1000;
+
+        // Setup simulator with various settings
+        Simulator simulator = new Simulator(timer, speed);
+        simulator.batteryPowerTask.charging = false;
+        simulator.batteryPowerTask.percent = 100;
+        simulator.glucoseDetectorTask.amount = 100;
+        simulator.insulinInjectorTask.reservoirAmount = 2000;
+        simulator.currentTime = 4 * 60 * 60;
+
+        // Setup a 24-hour daily routine
+        simulator.routines.add(new Simulator.Sleep(
+                "Morning Sleep",
+                0,
+                6)
+        );
+        simulator.routines.add(new Simulator.Meal(
+                "Breakfast",
+                7,
+                1)
+        );
+        simulator.routines.add(new Simulator.Exercise(
+                "Ride to Work",
+                8,
+                1)
+        );
+        simulator.routines.add(new Simulator.Stress(
+                "Morning Stress",
+                10,
+                1)
+        );
+        simulator.routines.add(new Simulator.Meal(
+                "Lunch",
+                12,
+                1)
+        );
+        simulator.routines.add(new Simulator.Stress(
+                "Afternoon Stress",
+                13,
+                2)
+        );
+        simulator.routines.add(new Simulator.Exercise(
+                "Ride back Home",
+                16,
+                1)
+        );
+        simulator.routines.add(new Simulator.Meal(
+                "Dinner",
+                18,
+                2)
+        );
+        simulator.routines.add(new Simulator.Sleep(
+                "Night Sleep",
+                21,
+                3)
+        );
+
+        Regulator regulator = new Regulator(timer, speed);
+
+        GregorianCalendar calendar = new GregorianCalendar();
+        long startTime = calendar.getTime().getTime();
+
+//        MiniPID controller = new MiniPID(0.25, 0.01, 0.4);
+
+        simulator.insulinInjectorTask.refill(2000);
+
+        // Set out UI thread
+        new Task(timer, 1, 1) {
+            @Override
+            public void run() {
+                runOnUiThread(() -> {
+                    lastBatteryPercent = (int) simulator.batteryPowerTask.percent;
+                    updateBatteryProgressBar((int) lastBatteryPercent);
+                    updateGlucoseProgressBar((int) lastGlucoseAmount);
+                    lastInsulinPercent = 100 / 2000 * (int) simulator.insulinInjectorTask.reservoirAmount;
+                    updateInsulinProgressBar((int) lastInsulinPercent);
+                });
+            }
+        }.initiate();
+
+        // Setup all the callbacks
+        PodHandler handler = new PodHandler() {
+
+            @Override
+            public void onGlucoseDetected(double amount) {
+                super.onGlucoseDetected(amount);
+                events.add(new Event(
+                        0,
+                        1,
+                        Event.Type.GLUCOSE_READING,
+                        startTime + simulator.currentTime + (simulator.days * 24 * 60 * 60),
+                        amount)
+                );
+                lastGlucoseAmount = (int) amount;
+                if (amount > 160) {
+                    notificationManager.notify(NotificationId.GLUCOSE_AMOUNT.ordinal(), glucoseHigh.build());
+                } else if (amount < 60) {
+                    notificationManager.notify(NotificationId.GLUCOSE_AMOUNT.ordinal(), glucoseLow.build());
+                }
+
+                if (simulator.batteryPowerTask.percent > 90) {
+                    simulator.batteryPowerTask.charging = false;
+                }
+            }
+
+            @Override
+            public void onInsulinInjected(double amount) {
+                super.onInsulinInjected(amount);
+                events.add(new Event(
+                        0,
+                        1,
+                        Event.Type.INSULIN_INJECTION,
+                        calendar.getTime().getTime() + simulator.currentTime,
+                        amount)
+                );
+            }
+
+            @Override
+            public void onBatteryPowerLow(double percent) {
+                super.onBatteryPowerLow(percent);
+                simulator.batteryPowerTask.charging = true;
+                notificationManager.notify(NotificationId.BATTERY_LOW.ordinal(), podBatteryLow.build());
+                lastBatteryPercent = (int) percent;
+            }
+
+            @Override
+            public void onInsulinReservoirLow() {
+                super.onInsulinReservoirLow();
+                simulator.insulinInjectorTask.refill(2000);
+                notificationManager.notify(NotificationId.INSULIN_RESERVOIR.ordinal(), insulinReservoirLow.build());
+            }
+
+            @Override
+            public void onRegulateDosage() {
+                if (simulator.batteryPowerTask.percent <= 0) {
+                    return;
+                }
+                super.onRegulateDosage();
+                if (lastGlucoseAmount > 150) {
+                    simulator.insulinInjectorTask.dose(lastGlucoseAmount / 10);
+                }
+            }
+        };
+        simulator.assignHandler(handler);
+        regulator.assignHandler(handler);
+
+        // Threads can now start
+        simulator.initiate();
+        regulator.initiate();
+    }
+
+    private void updateBatteryProgressBar(int percent) {
+        batteryProgressBar.setProgress((int) percent);
+        batteryTextView.setText(String.valueOf(percent));
+    }
+
+    private void updateGlucoseProgressBar(int amount) {
+        glucoseProgressBar.setProgress(amount);
+        glucoseTextView.setText(String.valueOf(amount));
+    }
+
+    private void updateInsulinProgressBar(int amount) {
+        insulinProgressBar.setProgress(amount);
+        insulinTextView.setText(String.valueOf(amount));
     }
 
     // Here are all bluetooth events to handle
@@ -181,11 +365,6 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
     private void setProgressBars() {
         final int glucoseLowThreshold = 3;
         final int glucoseHighThreshold = 7;
@@ -200,38 +379,30 @@ public class DashboardActivity extends AppCompatActivity {
                 R.drawable.circle_middle_threshold_foreground,
                 null);
 
-        // Determine which colour to set.
-        if (glucoseLevel >= glucoseHighThreshold || glucoseLevel <= glucoseLowThreshold) {
-            // Set colour to breached threshold.
-            glucoseProgressBar.setProgressDrawable(breachedThresholdColour);
-        }
-
-        if (insulinLevel >= percentageLowThreshold && insulinLevel < percentageMiddleThreshold) {
-            // Set colour to middle threshold.
-            insulinProgressBar.setProgressDrawable(middleThresholdColour);
-        } else if (insulinLevel < percentageLowThreshold) {
-            // Set colour to breached threshold.
-            insulinProgressBar.setProgressDrawable(breachedThresholdColour);
-        }
-
-        if (batteryLevel >= percentageLowThreshold && batteryLevel < percentageMiddleThreshold) {
-            // Set colour to middle threshold.
-            batteryProgressBar.setProgressDrawable(middleThresholdColour);
-        } else if (batteryLevel < percentageLowThreshold) {
-            // Set colour to breached threshold.
-            batteryProgressBar.setProgressDrawable(breachedThresholdColour);
-        }
-
-        // Set progress with text.
-        glucoseProgressBar.setProgress(glucoseLevel);
-        insulinProgressBar.setProgress(insulinLevel);
-        batteryProgressBar.setProgress(batteryLevel);
-        glucoseTextView.setText(String.valueOf(glucoseLevel));
-        insulinTextView.setText(String.valueOf(insulinLevel));
-        batteryTextView.setText(String.valueOf(batteryLevel));
+//        // Determine which colour to set.
+//        if (glucoseLevel >= glucoseHighThreshold || glucoseLevel <= glucoseLowThreshold) {
+//            // Set colour to breached threshold.
+//            glucoseProgressBar.setProgressDrawable(breachedThresholdColour);
+//        }
+//
+//        if (insulinLevel >= percentageLowThreshold && insulinLevel < percentageMiddleThreshold) {
+//            // Set colour to middle threshold.
+//            insulinProgressBar.setProgressDrawable(middleThresholdColour);
+//        } else if (insulinLevel < percentageLowThreshold) {
+//            // Set colour to breached threshold.
+//            insulinProgressBar.setProgressDrawable(breachedThresholdColour);
+//        }
+//
+//        if (batteryLevel >= percentageLowThreshold && batteryLevel < percentageMiddleThreshold) {
+//            // Set colour to middle threshold.
+//            batteryProgressBar.setProgressDrawable(middleThresholdColour);
+//        } else if (batteryLevel < percentageLowThreshold) {
+//            // Set colour to breached threshold.
+//            batteryProgressBar.setProgressDrawable(breachedThresholdColour);
+//        }
     }
 
-    private void findViewByIds() {
+    private void setupViews() {
         glucoseProgressBar = findViewById(R.id.glucose_circle_progress_bar);
         insulinProgressBar = findViewById(R.id.insulin_circle_progress_bar);
         batteryProgressBar = findViewById(R.id.battery_circle_progress_bar);
@@ -241,36 +412,36 @@ public class DashboardActivity extends AppCompatActivity {
         loginLogout = findViewById(R.id.menu_item_login);
     }
 
-    private void createNotifications() {
-        Intent dashboardIntent = new Intent(this, DashboardActivity.class);
-        dashboardIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                dashboardIntent, 0);
-        // Create additional intents to go to different activity and pass through to desired notification.
+    PendingIntent pendingIntent;
 
-        glucoseLow = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_glucose_low), getString(R.string.context_text_glucose_low)
+    private void setupNotifications() {
+        Intent intent = new Intent(this, DashboardActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        glucoseLow = new Notifications().buildHighPriority(
+                DashboardActivity.this,
+                pendingIntent,
+                getString(R.string.title_glucose_low),
+                getString(R.string.context_text_glucose_low)
         );
-        glucoseHigh = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_glucose_high), getString(R.string.context_text_glucose_high)
+        glucoseHigh = new Notifications().buildHighPriority(
+                DashboardActivity.this,
+                pendingIntent,
+                getString(R.string.title_glucose_high),
+                getString(R.string.context_text_glucose_high)
         );
-        glucoseNormal = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_glucose_normal), getString(R.string.context_text_glucose_normal)
+        podBatteryLow = new Notifications().buildHighPriority(
+                DashboardActivity.this,
+                pendingIntent,
+                getString(R.string.title_pod_battery_low),
+                getString(R.string.context_text_pod_battery_low)
         );
-        podBatteryLow = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_pod_battery_low), getString(R.string.context_text_pod_battery_low)
-        );
-        sensorFailure = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_sensor_failure), getString(R.string.context_text_sensor_failure)
-        );
-        insulinReservoirLow = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_insulin_reservoir_low), getString(R.string.context_text_insulin_reservoir_low)
-        );
-        deliveryFailure = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_delivery_failure), getString(R.string.context_text_delivery_failure)
-        );
-        insulinLow = new Notifications().buildHighPriority(this, pendingIntent,
-                getString(R.string.title_insulin_low), getString(R.string.context_text_insulin_low)
+        insulinReservoirLow = new Notifications().buildHighPriority(
+                DashboardActivity.this,
+                pendingIntent,
+                getString(R.string.title_insulin_reservoir_low),
+                getString(R.string.context_text_insulin_reservoir_low)
         );
     }
 

@@ -28,6 +28,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
+import jcu.cp3407.pancreart.model.Event;
+
 public class GraphFragment extends Fragment implements OnChartValueSelectedListener {
 
     LineChart chart;
@@ -144,35 +146,23 @@ public class GraphFragment extends Fragment implements OnChartValueSelectedListe
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setAvoidFirstLastClipping(true);
 
-        // store all glucose in List<Entry> glucoseData = new ArrayList<>()
-        // store all insulin in List<Entry> insulinData = new ArrayList<>()
-        // calculate median from adding all values and dividing by amount of values in List<Entry>
+        List<Entry> values1 = new ArrayList<>();
+        List<Entry> values2 = new ArrayList<>();
 
-        // Create LineData objects for each List<Entry> and median value.
-        // LineData glucoseLineData = new LineData(new LineDataSet(glucoseData, "Glucose"));
-        // LineData insulinLineData = new LineData(new LineDataSet(insulinData, "Insulin"));
-        // LineData medianLine = new LineData(new LineDataSet(median, "Median"));
-
-        // Set line colours.
-        // glucoseLineData.setValueTextColor(R.color.line_glucose);
-        // insulinLineData.setValueTextColor(R.color.line_glucose);
-        // medianLine.setValueTextColor(R.color.line_glucose);
-
-        // chart.setData(glucoseLineData);
-        // chart.setData(insulinLineData);
-        // chart.setData(medianLine);
-
-        Random random = new Random();
+        for (Event event : DashboardActivity.events) {
+            Entry entry = new Entry(event.time, (float) event.amount);
+            if (event.type == Event.Type.GLUCOSE_READING) {
+                values1.add(entry);
+                continue;
+            }
+            if (event.type == Event.Type.INSULIN_INJECTION) {
+                values2.add(entry);
+            }
+        }
 
         List<ILineDataSet> lineDataSets = new ArrayList<>();
 
-        List<Entry> values = new ArrayList<>();
-        for (int i = 0; i < 100; ++i) {
-            Entry entry = new Entry(i, 50 + random.nextInt(200));
-            values.add(entry);
-        }
-
-        LineDataSet lineDataSet1 = new LineDataSet(values, "Glucose");
+        LineDataSet lineDataSet1 = new LineDataSet(values1, "Glucose");
         lineDataSet1.setCircleRadius(3);
         lineDataSet1.setCircleHoleRadius(1);
         lineDataSet1.setCircleColor(Color.BLUE);
@@ -180,12 +170,6 @@ public class GraphFragment extends Fragment implements OnChartValueSelectedListe
         lineDataSet1.setColor(Color.BLUE);
         lineDataSet1.setDrawValues(true);
         lineDataSets.add(lineDataSet1);
-
-        List<Entry> values2 = new ArrayList<>();
-        for (int i = 0; i < 100; ++i) {
-            Entry entry = new Entry(i++, 50 + random.nextInt(200));
-            values2.add(entry);
-        }
 
         LineDataSet lineDataSet2 = new LineDataSet(values2, "Insulin");
         lineDataSet2.setCircleRadius(5);

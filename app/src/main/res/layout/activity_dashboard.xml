@@ -60,10 +60,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:indeterminate="false"
-                    android:max="10"
-                    android:progress="10"
-                    android:progressDrawable="@drawable/circle_progress_background"
-                    android:rotation="-90" />
+                    android:max="1"
+                    android:progress="1"
+                    android:progressDrawable="@drawable/circle_progress_background" />
 
                 <ProgressBar
                     android:id="@+id/glucose_circle_progress_bar"
@@ -88,7 +87,6 @@
                         android:textSize="32sp" />
 
                 </RelativeLayout>
-
 
             </FrameLayout>
 
@@ -118,8 +116,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:indeterminate="false"
-                    android:max="100"
-                    android:progress="100"
+                    android:max="1"
+                    android:progress="1"
                     android:progressDrawable="@drawable/circle_progress_background"
                     android:rotation="-90" />
 

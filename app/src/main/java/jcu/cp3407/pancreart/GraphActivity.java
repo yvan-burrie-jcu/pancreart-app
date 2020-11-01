@@ -6,15 +6,18 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.PopupWindow;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 
 public class GraphActivity extends AppCompatActivity {
+
     private GraphFragment graphFragment;
 
     private int currentDay, currentMonth, currentYear;
@@ -28,10 +31,25 @@ public class GraphActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
 
+        Toolbar toolbar = findViewById(R.id.graphToolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
         // Display default graph with current date
         displayGraphFragment();
         createPopupWindow();
         setButtonListeners();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void createPopupWindow() {
@@ -81,7 +99,7 @@ public class GraphActivity extends AppCompatActivity {
         });
 
         currentButton.setOnClickListener((view) -> {
-           // Show date picker widget
+            // Show date picker widget
             popupWindow.showAtLocation(graphFragment.getView(), Gravity.CENTER, 0, 0);
         });
 

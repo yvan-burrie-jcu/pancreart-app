@@ -13,7 +13,6 @@
     <string name="back_button">Back</string>
     <string name="home_address">34.70.63.29</string>
 
-    <string name="placeholder_text">PLACEHOLDER TEXT</string>
 
     <!-- Authentication -->
     <string name="title_activity_login">Login</string>

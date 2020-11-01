@@ -15,6 +15,8 @@ public class Event {
     private int eventType;
     private int userId;
     private int time;
+    private int startTime;
+    private int endTime;
     private float amount;
     private JSONObject eventData;
 
@@ -27,7 +29,20 @@ public class Event {
         return userId;
     }
 
-    public void setEventData() { // setting all event object features
+    //Placeholder values for testing
+    public void setEventData() throws JSONException, IOException { // setting all event object features
+
+        getArrayData(12, 1);
+        JSONObject test = new JSONObject();
+
+        //Placeholder values for testing
+        test.put("id", 19);
+        test.put("time", 12);
+        test.put("amount", 3.7);
+        test.put("eventType", 1);
+        test.put("startTime", 12);
+        test.put("endTime", 1);
+        System.out.println("This is my test:" + test.toString());
 
         // userId = eventData[0]
     }

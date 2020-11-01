@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class Event {
     private int eventType;
@@ -82,4 +83,7 @@ public class Event {
 //        JSONTest.write(JSONTestArray.toString());
 //    }
 
+    private void JSONObjectRequest() {
+        //TODO IMPLEMENT JSON PARSER CLASS TO REQUEST JSON OBJECTS FROM WEB-SERVER
+    }
 }

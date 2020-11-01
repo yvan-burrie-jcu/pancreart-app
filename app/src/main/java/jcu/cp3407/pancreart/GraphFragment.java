@@ -1,10 +1,9 @@
 package jcu.cp3407.pancreart;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 
-import androidx.core.content.ContextCompat;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -12,24 +11,29 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Random;
 
+public class GraphFragment extends Fragment implements OnChartValueSelectedListener {
 
-public class GraphFragment extends Fragment {
     LineChart chart;
-    LineData lineData;
-    List<Entry> entryList = new ArrayList<>();
-    Context context;
+
+    final float textSize = 12;
+
     int day, month, year;
 
     public GraphFragment() {
@@ -37,13 +41,17 @@ public class GraphFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_graph,container,false);
-        chart = view.findViewById(R.id.chart);
-        context = view.getContext();
-        Legend legend = chart.getLegend();
+        View view = inflater.inflate(R.layout.fragment_graph, container, false);
+
+        setupChart(view);
+        setupChartLegends();
+        setupChartLimitLines();
+
+        setChartDescription("Click on glucose and insulin dots for more info.");
 
         Calendar calendar = Calendar.getInstance();
         day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -55,16 +63,85 @@ public class GraphFragment extends Fragment {
         return view;
     }
 
+    private void setupChart(View view) {
+        chart = view.findViewById(R.id.chart);
+
+        chart.setOnChartValueSelectedListener(this);
+
+        chart.setTouchEnabled(true);
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(true);
+        chart.setPinchZoom(false);
+
+        chart.getAxisLeft().setEnabled(true);
+        chart.getAxisRight().setEnabled(false);
+
+        chart.setDrawBorders(false);
+        chart.setBackgroundColor(getResources().getColor(R.color.white));
+        chart.setGridBackgroundColor(getResources().getColor(R.color.white));
+    }
+
+    private void setupChartLegends() {
+        Legend legend = chart.getLegend();
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT);
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        legend.setDrawInside(false);
+    }
+
+    private void setupChartLimitLines() {
+        LimitLine ll1, ll2;
+
+        // High glucose limit
+        ll1 = new LimitLine(180, "High Glucose Level");
+        ll1.setLineColor(Color.YELLOW);
+        ll1.setLineWidth(2);
+        ll1.enableDashedLine(50, 10, 0);
+        ll1.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_TOP);
+        ll1.setTextSize(textSize);
+
+        // Low glucose limit
+        ll2 = new LimitLine(60, "Low Glucose Level");
+        ll2.setLineColor(Color.RED);
+        ll2.setLineWidth(2);
+        ll2.enableDashedLine(50, 10, 0);
+        ll2.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_BOTTOM);
+        ll2.setTextSize(textSize);
+
+        // Append lines to chart
+        YAxis leftAxis = chart.getAxisLeft();
+        leftAxis.removeAllLimitLines();
+        leftAxis.addLimitLine(ll1);
+        leftAxis.addLimitLine(ll2);
+    }
+
+    public void setChartDescription(@Nullable String text) {
+        if (text == null) {
+            chart.getDescription().setEnabled(false);
+            return;
+        }
+        Description description = new Description();
+        description.setText(text);
+        description.setTextSize(textSize);
+        chart.setDescription(description);
+    }
+
+    @Override
+    public void onValueSelected(Entry entry, Highlight highlight) {
+        setChartDescription("Glucose amount of " + entry.getX() + " ml.");
+    }
+
+    @Override
+    public void onNothingSelected() {
+    }
+
     private void drawChart(int day, int month, int year) {
         // Query database and store as event.
-
-
 
         // Set X-Axis
         final XAxis xAxis = chart.getXAxis();
         xAxis.setDrawGridLines(false);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
         xAxis.setAvoidFirstLastClipping(true);
 
         // store all glucose in List<Entry> glucoseData = new ArrayList<>()
@@ -81,25 +158,48 @@ public class GraphFragment extends Fragment {
         // insulinLineData.setValueTextColor(R.color.line_glucose);
         // medianLine.setValueTextColor(R.color.line_glucose);
 
-
-
         // chart.setData(glucoseLineData);
         // chart.setData(insulinLineData);
         // chart.setData(medianLine);
 
-        chart.getAxisRight().setEnabled(false);
-        chart.setBackgroundColor(getResources().getColor(R.color.white));
-        chart.setGridBackgroundColor(getResources().getColor(R.color.white));
+        Random random = new Random();
+
+        List<ILineDataSet> lineDataSets = new ArrayList<>();
 
         List<Entry> values = new ArrayList<>();
-        for (int i = 0; i < 10; ++i)
-        {
-            values.add(new Entry(i, 100 + 1));
+        for (int i = 0; i < 100; ++i) {
+            Entry entry = new Entry(i, 50 + random.nextInt(200));
+            values.add(entry);
         }
-        LineData data = new LineData(new LineDataSet(values, ""));
-        chart.setData(data);
-    }
 
+        LineDataSet lineDataSet1 = new LineDataSet(values, "Glucose");
+        lineDataSet1.setCircleRadius(3);
+        lineDataSet1.setCircleHoleRadius(1);
+        lineDataSet1.setCircleColor(Color.BLUE);
+        lineDataSet1.setCircleHoleColor(Color.CYAN);
+        lineDataSet1.setColor(Color.BLUE);
+        lineDataSet1.setDrawValues(true);
+        lineDataSets.add(lineDataSet1);
+
+        List<Entry> values2 = new ArrayList<>();
+        for (int i = 0; i < 100; ++i) {
+            Entry entry = new Entry(i++, 50 + random.nextInt(200));
+            values2.add(entry);
+        }
+
+        LineDataSet lineDataSet2 = new LineDataSet(values2, "Insulin");
+        lineDataSet2.setCircleRadius(5);
+        lineDataSet2.setCircleHoleRadius(3);
+        lineDataSet2.setCircleColor(Color.GREEN);
+        lineDataSet2.setCircleHoleColor(Color.GRAY);
+        lineDataSet2.setColor(Color.GREEN);
+        lineDataSet2.setLineWidth(0);
+        lineDataSets.add(lineDataSet2);
+
+        LineData lineData = new LineData(lineDataSets);
+        chart.setData(lineData);
+        chart.invalidate();
+    }
 
     public void update(int day, int month, int year) {
         // Handle retrieving data from SQLite database
@@ -107,5 +207,4 @@ public class GraphFragment extends Fragment {
 
         drawChart(day, month, year);
     }
-
 }

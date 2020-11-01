@@ -11,8 +11,12 @@
     <string name="graph">Graph</string>
     <string name="pod">Pod</string>
     <string name="back_button">Back</string>
-    <string name="home_address">34.70.63.29</string>
 
+    <!-- Server IP (and port) address
+         Address can be external/domain, but running locally requires that the emulator uses 10.0.2.2 to broadcast 127.0.0.1 (localhost computer).
+    -->
+    <string name="home_address">10.0.2.2:8000</string> <!-- Emulator localhost server -->
+    <!--<string name="home_address">35.222.34.156</string>--> <!-- External cloud server -->
 
     <!-- Authentication -->
     <string name="title_activity_login">Login</string>

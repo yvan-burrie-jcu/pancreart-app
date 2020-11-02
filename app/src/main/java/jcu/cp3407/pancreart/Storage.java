@@ -164,9 +164,5 @@ class Storage extends SQLiteOpenHelper {
                 addEvent(event);
             }
         }
-
-
-
-        System.out.println(userId);
     }
 }

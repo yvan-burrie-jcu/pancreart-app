@@ -70,6 +70,7 @@ class Storage extends SQLiteOpenHelper {
             minTime = maxTime;
             maxTime = tempTime;
         }
+
         SQLiteDatabase database = getReadableDatabase();
         Stack<Integer> selectedEvents = new Stack<>();
         Cursor cursor = null;

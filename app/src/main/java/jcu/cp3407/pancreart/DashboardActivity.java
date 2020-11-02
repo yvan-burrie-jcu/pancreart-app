@@ -11,10 +11,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.*;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -23,11 +25,16 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Timer;
 
+import jcu.cp3407.pancreart.data.LoginDataSource;
+import jcu.cp3407.pancreart.data.LoginRepository;
+import jcu.cp3407.pancreart.data.model.LoggedInUser;
 import jcu.cp3407.pancreart.model.Event;
 import jcu.cp3407.pancreart.model.PodHandler;
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
@@ -41,10 +48,10 @@ public class DashboardActivity extends AppCompatActivity {
         LOGIN_PAGE,
     }
 
-    private Toolbar toolbar;
+    public static LoggedInUser user;
 
+    private Toolbar toolbar;
     private Menu menu;
-    private MenuItem loginLogout;
 
     private ProgressBar glucoseProgressBar;
     private ProgressBar insulinProgressBar;
@@ -75,8 +82,28 @@ public class DashboardActivity extends AppCompatActivity {
     int lastInsulinPercent;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onSaveInstanceState(@NonNull Bundle bundle) {
+        super.onSaveInstanceState(bundle);
+
+        if (user != null && bundle != null) {
+            bundle.putString("user_name", user.getName());
+            bundle.putLong("user_id", user.getId());
+            bundle.putString("user_email", user.getEmail());
+            bundle.putString("user_token", user.getToken());
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+
+        if (bundle != null) {
+            String userName = bundle.getString("user_name");
+            long userId = bundle.getLong("user_id");
+            String userEmail = bundle.getString("user_email");
+            String userToken = bundle.getString("user_token");
+        }
+
         setContentView(R.layout.activity_dashboard);
 
         context = getApplicationContext();
@@ -339,8 +366,13 @@ public class DashboardActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_login: {
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivityForResult(intent, Intents.LOGIN_PAGE.ordinal());
+                if (user == null) {
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    startActivityForResult(intent, Intents.LOGIN_PAGE.ordinal());
+                } else {
+                    LoginRepository.getInstance(new LoginDataSource()).logout(
+                            getResources().getString(R.string.home_address));
+                }
                 return true;
             }
             case R.id.menu_item_graph: {
@@ -360,8 +392,17 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == resultCode) {
-            loginLogout.setTitle(R.string.logout);
+        if (requestCode == Intents.LOGIN_PAGE.ordinal()) {
+            updateLoginButton();
+        }
+    }
+
+    private void updateLoginButton() {
+        MenuItem item = menu.findItem(R.id.menu_item_login);
+        if (user != null) {
+            item.setTitle(R.string.logout);
+        } else {
+            item.setTitle(R.string.login);
         }
     }
 
@@ -409,7 +450,6 @@ public class DashboardActivity extends AppCompatActivity {
         glucoseTextView = findViewById(R.id.glucose_text);
         insulinTextView = findViewById(R.id.insulin_text);
         batteryTextView = findViewById(R.id.battery_text);
-        loginLogout = findViewById(R.id.menu_item_login);
     }
 
     PendingIntent pendingIntent;

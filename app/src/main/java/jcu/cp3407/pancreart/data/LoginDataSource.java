@@ -27,16 +27,20 @@ public class LoginDataSource {
             if (response == null) {
                 return new Result.Error(new IOException("No response from logging in"));
             }
-            String userName = "";
+            long id = 0;
+            if (response.has("userId")) {
+                id = response.getLong("id");
+            }
+            String name = "";
             if (response.has("name")) {
-                userName = response.getString("name");
+                name = response.getString("name");
             }
-            String accessToken = "";
+            String token = "";
             if (response.has("token")) {
-                accessToken = response.getString("token");
+                token = response.getString("token");
             }
-            System.out.println("\n\n" + accessToken + "\n\n");
-            LoggedInUser user = new LoggedInUser("", userName, accessToken);
+            System.out.println("\n\n" + token + "\n\n");
+            LoggedInUser user = new LoggedInUser(id, name, email, token);
             return new Result.Success<>(user);
         } catch (Exception exception) {
             return new Result.Error(new IOException("Error logging in", exception));

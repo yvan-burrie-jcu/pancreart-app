@@ -37,6 +37,10 @@ public class LoginRepository {
         } catch (Exception ignored) {}
     }
 
+    public LoggedInUser getUser() {
+        return user;
+    }
+
     private void setLoggedInUser(LoggedInUser user) {
         this.user = user;
     }

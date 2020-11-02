@@ -5,25 +5,34 @@ package jcu.cp3407.pancreart.data.model;
  */
 public class LoggedInUser {
 
-    private String userId;
-    private String displayName;
-    private String accessToken;
+    private long id;
 
-    public LoggedInUser(String userId, String displayName, String accessToken) {
-        this.userId = userId;
-        this.displayName = displayName;
-        this.accessToken = accessToken;
+    private String name;
+
+    private String email;
+
+    private String token;
+
+    public LoggedInUser(long id, String name, String email, String token) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.token = token;
     }
 
-    public String getUserId() {
-        return userId;
+    public long getId() {
+        return id;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getName() {
+        return name;
     }
 
-    public String getAccessToken() {
-        return accessToken;
+    public String getEmail() {
+        return email;
+    }
+
+    public String getToken() {
+        return token;
     }
 }

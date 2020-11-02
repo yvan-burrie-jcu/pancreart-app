@@ -1,5 +1,7 @@
 package jcu.cp3407.pancreart;
 
+import jcu.cp3407.pancreart.model.Event;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -11,14 +13,17 @@ import java.util.Stack;
 
 class Storage extends SQLiteOpenHelper {
 
-    private static final String FILE_NAME = "pancreart.sql";
+    private static final String FILE_NAME = "pancreart.db";
 
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     static final class EventTable implements BaseColumns {
         static final String NAME = "event";
-        static final String COL_TIMESTAMP = "timestamp";
-        static final String COL_UPLOADED = "uploaded";
+        static final String COL_USER_ID = "user_id";
+        static final String COL_TYPE = "type";
+        static final String COL_TIME = "time";
+        static final String COL_AMOUNT = "amount";
+        static final String COL_OWNER = "uploaded";
     }
 
     Storage(Context context) {
@@ -31,9 +36,15 @@ class Storage extends SQLiteOpenHelper {
                 "(" +
                 EventTable._ID + " INTEGER PRIMARY KEY AUTOINCREMENT" +
                 "," +
-                EventTable.COL_TIMESTAMP + " INTEGER" +
+                EventTable.COL_USER_ID + " INTEGER" +
                 "," +
-                EventTable.COL_UPLOADED + " BOOLEAN" +
+                EventTable.COL_TYPE + " INTEGER" +
+                "," +
+                EventTable.COL_TIME + " INTEGER" +
+                "," +
+                EventTable.COL_AMOUNT + " REAL" +
+                "," +
+                EventTable.COL_OWNER + " BOOLEAN" +
                 ")"
         );
     }
@@ -46,26 +57,27 @@ class Storage extends SQLiteOpenHelper {
         }
     }
 
-    void insertEvent(int timestamp, boolean uploaded) {
+    void addEvent(Event event) {
         ContentValues values = new ContentValues();
-        values.put(EventTable.COL_TIMESTAMP, timestamp);
-        values.put(EventTable.COL_UPLOADED, uploaded);
+        values.put(EventTable.COL_TIME, event.time);
+        values.put(EventTable.COL_OWNER, event.owner);
         getWritableDatabase().insert(EventTable.NAME, null, values);
     }
 
-    Stack<Integer> selectEvents(int minTimestamp, int maxTimestamp) {
-        if (minTimestamp > maxTimestamp) {
-            int tmpTimestamp = minTimestamp;
-            minTimestamp = maxTimestamp;
-            maxTimestamp = tmpTimestamp;
+    Stack<Integer> getEvents(long minTime, long maxTime) {
+        if (minTime > maxTime) {
+            long tempTime = minTime;
+            minTime = maxTime;
+            maxTime = tempTime;
         }
         SQLiteDatabase database = getReadableDatabase();
         Stack<Integer> selectedEvents = new Stack<>();
         Cursor cursor = null;
         try {
-            cursor = database.rawQuery("SELECT * FROM " + EventTable.NAME + " " +
-                    "WHERE " + EventTable.COL_TIMESTAMP + " >= " + minTimestamp +
-                    "AND   " + EventTable.COL_TIMESTAMP + " <= " + maxTimestamp, null);
+            cursor = database.rawQuery(
+                    "SELECT * FROM " + EventTable.NAME + " " +
+                    "WHERE " + EventTable.COL_TIME + " >= " + minTime +
+                    "AND   " + EventTable.COL_TIME + " <= " + maxTime, null);
             if (cursor.moveToFirst()) {
                 do {
                     selectedEvents.add(cursor.getInt(cursor.getColumnIndex(EventTable._ID)));

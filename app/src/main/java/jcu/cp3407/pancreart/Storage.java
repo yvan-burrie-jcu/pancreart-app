@@ -20,6 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import jcu.cp3407.pancreart.model.Event;
@@ -81,26 +83,38 @@ class Storage extends SQLiteOpenHelper {
         getWritableDatabase().insert(EventTable.NAME, null, values);
     }
 
-    Stack<Integer> getEvents(long userId, long minTime, long maxTime) {
-        // Call to populate graph
-        if (minTime > maxTime) {
-            long tempTime = minTime;
-            minTime = maxTime;
-            maxTime = tempTime;
-        }
-
+    List<Event> getEvents(long userId, long minTime, long maxTime) {
         SQLiteDatabase database = getReadableDatabase();
-        Stack<Integer> selectedEvents = new Stack<>();
         Cursor cursor = null;
+        List<Event> events = new ArrayList<>();
         try {
             cursor = database.rawQuery(
                     "SELECT * FROM " + EventTable.NAME + " " +
                             "WHERE " + EventTable.COL_USER_ID + "= " + userId +
-                            "AND " + EventTable.COL_TIME + " >= " + minTime +
-                            "AND   " + EventTable.COL_TIME + " <= " + maxTime, null);
+                            " AND " + EventTable.COL_TIME + " >= " + minTime +
+                            " AND   " + EventTable.COL_TIME + " <= " + maxTime, null);
             if (cursor.moveToFirst()) {
                 do {
-                    selectedEvents.add(cursor.getInt(cursor.getColumnIndex(EventTable._ID)));
+                    // Get values from SQLite database
+                    long eventId = cursor.getLong(cursor.getColumnIndex(EventTable.COL_USER_ID));
+                    long eventOwner = cursor.getLong(cursor.getColumnIndex(EventTable.COL_OWNER));
+                    int typeValue = cursor.getType(cursor.getColumnIndex(EventTable.COL_TYPE));
+                    Event.Type eventType;
+                    if (typeValue == 1) {
+                        eventType = Event.Type.GLUCOSE_READING;
+                    } else {
+                        eventType = Event.Type.INSULIN_INJECTION;
+                    }
+                    long eventTime = cursor.getLong(cursor.getColumnIndex(EventTable.COL_TIME));
+                    double eventAmount = cursor.getLong(cursor.getColumnIndex(EventTable.COL_AMOUNT));
+
+                    // Create Event
+                    Event event = new Event(eventId, eventOwner, eventType, eventTime, eventAmount);
+
+                    // Add Event to Events Array
+                    events.add(event);
+
+                    // Return Events Array
                 } while (cursor.moveToNext());
             }
         } finally {
@@ -108,8 +122,38 @@ class Storage extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        return selectedEvents;
+        return events;
     }
+
+//    Stack<Integer> getEvents1(long userId, long minTime, long maxTime) {
+//        // Call to populate graph
+//        if (minTime > maxTime) {
+//            long tempTime = minTime;
+//            minTime = maxTime;
+//            maxTime = tempTime;
+//        }
+//
+//        SQLiteDatabase database = getReadableDatabase();
+//        Stack<Integer> selectedEvents = new Stack<>();
+//        Cursor cursor = null;
+//        try {
+//            cursor = database.rawQuery(
+//                    "SELECT * FROM " + EventTable.NAME + " " +
+//                            "WHERE " + EventTable.COL_USER_ID + "= " + userId +
+//                            " AND " + EventTable.COL_TIME + " >= " + minTime +
+//                            " AND   " + EventTable.COL_TIME + " <= " + maxTime, null);
+//            if (cursor.moveToFirst()) {
+//                do {
+//                    selectedEvents.add(cursor.getInt(cursor.getColumnIndex(EventTable._ID)));
+//                } while (cursor.moveToNext());
+//            }
+//        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//            }
+//        }
+//        return selectedEvents;
+//    }
 
     private void getEventsFromServer(long startTime, long endTime) throws JSONException, IOException {  // add user auth code parameter
 

@@ -25,6 +25,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class GraphFragment extends Fragment implements OnChartValueSelectedListener {
@@ -135,9 +136,10 @@ public class GraphFragment extends Fragment implements OnChartValueSelectedListe
     }
 
     private void drawChart(int day, int month, int year) {
-        // Query database and store as event.
+        Calendar date1 = new GregorianCalendar(year, month, day);
+        Calendar date2 = (Calendar) date1.clone();
+        date2.add(Calendar.DAY_OF_MONTH, 1);
 
-        // Set X-Axis
         final XAxis xAxis = chart.getXAxis();
         xAxis.setDrawGridLines(false);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -147,7 +149,10 @@ public class GraphFragment extends Fragment implements OnChartValueSelectedListe
         List<Entry> values2 = new ArrayList<>();
 
         for (Event event : DashboardActivity.events) {
-            Entry entry = new Entry(event.time, (float) event.amount);
+            if (event.time < date1.getTimeInMillis() && event.time > date2.getTimeInMillis()) {
+                continue;
+            }
+            Entry entry = new Entry(event.time - date1.getTimeInMillis(), (float) event.amount);
             if (event.type == Event.Type.GLUCOSE_READING) {
                 values1.add(entry);
                 continue;

@@ -24,29 +24,42 @@ public class GraphActivity extends AppCompatActivity {
     private GraphFragment graphFragment;
 
     private int currentDay, currentMonth, currentYear;
-    private int previousDay, nextDay;
+
     private PopupWindow popupWindow;
     private DatePicker datePicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_graph);
 
-        Toolbar toolbar = findViewById(R.id.graphToolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            setContentView(R.layout.activity_graph);
+
+            Button button = findViewById(R.id.current_button);
+            button.setOnClickListener((view) -> {
+                popupWindow.showAtLocation(graphFragment.getView(), Gravity.CENTER, 0, 0);
+            });
+
+            createPopupWindow();
+
+            Toolbar toolbar = findViewById(R.id.graphToolbar);
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
+            }
+        } else {
+            setContentView(R.layout.activity_graph_large);
+            getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
 
         // Display default graph with current date
-        displayGraphFragment();
-        createPopupWindow();
-        setButtonListeners();
+        graphFragment = new GraphFragment();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragmentContainer, graphFragment);
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -59,27 +72,23 @@ public class GraphActivity extends AppCompatActivity {
 
     private void createPopupWindow() {
         final LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final double THREE_QUARTERS = 0.75;
+        final double THREE_QUARTERS = 3d / 4;
         int[] screenDimensions = getScreenDimensions();
 
         assert inflater != null;
-        @SuppressLint("InflateParams") View popupView = inflater.inflate(R.layout.popup_date_picker, null);
+        @SuppressLint("InflateParams")
+        View popupView = inflater.inflate(R.layout.popup_date_picker, null);
         popupWindow = new PopupWindow(
                 popupView,
                 screenDimensions[0] *= THREE_QUARTERS,
                 screenDimensions[1] *= THREE_QUARTERS,
                 true);
 
-        // Create listener for submit button
         datePicker = popupView.findViewById(R.id.date_picker);
         popupView.findViewById(R.id.submit_button).setOnClickListener(v -> {
-            // Show previous day data from SQLite database
             currentDay = datePicker.getDayOfMonth();
             currentMonth = datePicker.getMonth();
             currentYear = datePicker.getYear();
-
-            previousDay = currentDay - 1;
-            nextDay = currentDay + 1;
             popupWindow.dismiss();
             graphFragment.update(currentDay, currentMonth, currentYear);
         });
@@ -91,39 +100,13 @@ public class GraphActivity extends AppCompatActivity {
 
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             // todo: full screen graph
+            graphFragment.update(currentDay, currentMonth, currentYear);
         }
     }
 
-    private void displayGraphFragment() {
-        graphFragment = new GraphFragment();
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragmentContainer, graphFragment);
-        fragmentTransaction.commit();
-    }
-
     private int[] getScreenDimensions() {
-        return new int[]{Resources.getSystem().getDisplayMetrics().widthPixels,
+        return new int[]{
+                Resources.getSystem().getDisplayMetrics().widthPixels,
                 Resources.getSystem().getDisplayMetrics().heightPixels};
-    }
-
-    private void setButtonListeners() {
-        Button previousButton = findViewById(R.id.previous_button);
-        Button currentButton = findViewById(R.id.current_button);
-        Button nextButton = findViewById(R.id.next_button);
-
-        previousButton.setOnClickListener((view) -> {
-            // Show previous day data from SQLite database
-            graphFragment.update(previousDay, currentMonth, currentYear);
-        });
-
-        currentButton.setOnClickListener((view) -> {
-            // Show date picker widget
-            popupWindow.showAtLocation(graphFragment.getView(), Gravity.CENTER, 0, 0);
-        });
-
-        nextButton.setOnClickListener((view) -> {
-            // Show next day data from SQLite database
-            graphFragment.update(nextDay, currentMonth, currentYear);
-        });
     }
 }

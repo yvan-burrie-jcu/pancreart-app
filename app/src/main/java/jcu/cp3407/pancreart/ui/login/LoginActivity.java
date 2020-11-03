@@ -50,9 +50,9 @@ public class LoginActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
 
         final EditText usernameEditText = findViewById(R.id.email);
-        usernameEditText.setText("user@email.com");
+//        usernameEditText.setText("user@email.com");
         final EditText passwordEditText = findViewById(R.id.password);
-        passwordEditText.setText("example");
+//        passwordEditText.setText("example");
         final Button loginButton = findViewById(R.id.login);
         final ProgressBar loadingProgressBar = findViewById(R.id.loading);
 

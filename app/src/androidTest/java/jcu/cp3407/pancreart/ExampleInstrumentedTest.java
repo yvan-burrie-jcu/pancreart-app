@@ -39,18 +39,18 @@ public class ExampleInstrumentedTest {
 
         getServerData(storage);
 
-//        final String EVENT_TAG = "EVENT";
-//        long userId = 0;
-//        long minTime = 1601596800; // 10/02/2020 @ 12:00am (UTC)
-//        long maxTime = 1601683199; // 10/02/2020 @ 11:59pm (UTC)
-//        Stack<Integer> events = storage.getEvents(userId, minTime, maxTime);
-//        // Events = [event1 [attribute : value], event2 [attribute : value]]
-//        // [id [userId, type, time, amount, owner]]
-//
-//        for (Integer event : events) {
-//            Log.i(EVENT_TAG, "Event: " + event);
-//
-//        }
+        final String EVENT_TAG = "EVENT";
+        long userId = 0;
+        long minTime = 1601596800; // 10/02/2020 @ 12:00am (UTC)
+        long maxTime = 1601683199; // 10/02/2020 @ 11:59pm (UTC)
+
+        List<Event> events = storage.getEvents(userId, minTime, maxTime);
+        Log.i(EVENT_TAG, "Events Array Length: " + events);
+
+        for (Event event : events) {
+            Log.i(EVENT_TAG, "userID: " + event.getUserId() + " owner: " + event.getOwner() +
+                    " type: " + event.getTypeString() + " time: " + event.getTime() + " amount: " + event.getAmount());
+        }
         // Retrieve event from SQLite database
     }
 
@@ -88,7 +88,6 @@ public class ExampleInstrumentedTest {
         Log.i(JSON_TAG, "Length: " + dataObject.length());
 
 
-        String[] attributes = {"userId", "type", "time", "amount", "owner"};
         // Store in SQLite database
         if (dataObject.has("events")) {
             Log.i(JSON_TAG, "Contains \"events\"");

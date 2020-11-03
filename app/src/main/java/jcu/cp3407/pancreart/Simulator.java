@@ -4,9 +4,9 @@ import java.util.*;
 
 public class Simulator extends Task {
 
-    final static boolean LOG_ENABLED = true;
+    boolean logEnabled = true;
 
-    final static long DELAY_RATE = 1;
+    boolean deviationsEnabled = true;
 
     ArrayList<Routine> routines = new ArrayList<>();
 
@@ -50,7 +50,7 @@ public class Simulator extends Task {
 
         Meal(String name, double startHour, double durationHours) {
             super(name, startHour, durationHours);
-            rate = +50;
+            rate = +60;
         }
     }
 
@@ -80,9 +80,9 @@ public class Simulator extends Task {
 
     BatteryPowerTask batteryPowerTask;
 
-    static class BatteryPowerTask extends Task {
+    class BatteryPowerTask extends Task {
 
-        final static long DELAY = 10 / DELAY_RATE;
+        final static long DELAY = 10;
 
         double percent = 100;
 
@@ -102,7 +102,7 @@ public class Simulator extends Task {
 
         @Override
         public void run() {
-            if (LOG_ENABLED) {
+            if (logEnabled) {
                 System.out.println(" - Running Battery Power Task: " + percent + "%");
             }
             if (percent > 0) {
@@ -131,7 +131,7 @@ public class Simulator extends Task {
 
     class GlucoseDetectorTask extends Task {
 
-        final static long DELAY = 60 * 5 / DELAY_RATE;
+        final static long DELAY = 60 * 5;
 
         double amount = 120;
 
@@ -141,7 +141,7 @@ public class Simulator extends Task {
 
         @Override
         public void run() {
-            if (LOG_ENABLED) {
+            if (logEnabled) {
                 System.out.println(" - Running Glucose Detector Task: " + amount);
             }
             if (Simulator.this.batteryPowerTask.percent > 0) {
@@ -154,7 +154,7 @@ public class Simulator extends Task {
 
     class InsulinInjectorTask extends Task {
 
-        final static long DELAY = 60 * 10 / DELAY_RATE;
+        final static long DELAY = 60 * 10;
 
         double reservoirAmount = 2000;
 
@@ -172,7 +172,7 @@ public class Simulator extends Task {
 
         @Override
         public void run() {
-            if (LOG_ENABLED) {
+            if (logEnabled) {
                 System.out.println(" - Running Insulin Injector Task: " + reservoirAmount);
             }
             if (Simulator.this.batteryPowerTask.percent > 0) {
@@ -208,7 +208,7 @@ public class Simulator extends Task {
                 if (reservoirAmount >= amount) {
                     reservoirAmount -= amount;
                     Simulator.this.insulinDisperserTask.amount += amount;
-                    handler.onInsulinInjected(amount);
+                    handler.onInsulinInjected(Simulator.this.glucoseDetectorTask.amount);
                 }
             }
         }
@@ -230,7 +230,7 @@ public class Simulator extends Task {
 
     class InsulinDisperserTask extends Task {
 
-        final static long DELAY = 10 / DELAY_RATE;
+        final static long DELAY = 10;
 
         /**
          * The amount of insulin in the blood stream that has not been used.
@@ -245,7 +245,7 @@ public class Simulator extends Task {
 
         @Override
         public void run() {
-            if (LOG_ENABLED) {
+            if (logEnabled) {
                 System.out.println(" - Running Insulin Disperser Task: " + amount);
             }
             if (amount >= UNIT / 100) {
@@ -264,9 +264,9 @@ public class Simulator extends Task {
     Random random = new Random();
 
     final static double[] GLUCOSE_DECREMENT = {
-            -0.050,
-            -0.075,
-            -0.100,
+            -0.0,
+            -0.1,
+            -0.2,
     };
 
     long currentTime = 0;
@@ -287,24 +287,29 @@ public class Simulator extends Task {
             currentTime = 0;
             days += 1;
         }
-        long hours = currentTime / 3600;
-        long minutes = (currentTime - (hours * 3600)) / 60;
-        long second = currentTime - (hours * 3600) - (minutes * 60);
-        System.out.println(" - Running Simulator: " + hours + ":" + minutes + ":" + second);
+
+        if (logEnabled) {
+            long hours = currentTime / 3600;
+            long minutes = (currentTime - (hours * 3600)) / 60;
+            long second = currentTime - (hours * 3600) - (minutes * 60);
+            System.out.println(" - Running Simulator: " + hours + ":" + minutes + ":" + second);
+        }
 
         // Go through each routine and run them if they are active
         for (Routine routine : routines) {
             // Modify glucose amount according to the routine
             double glucoseChange = routine.calculatePeakPercent(currentTime) * routine.rate / 1000;
-//            System.out.println(" - Glucose Change: " + glucoseChange);
             glucoseDetectorTask.amount += glucoseChange;
         }
 
-        // Regardless of anything, glucose always drops with some randomness
-        double value = random.nextFloat() * (GLUCOSE_DECREMENT[2] - GLUCOSE_DECREMENT[0]) + GLUCOSE_DECREMENT[0];
-//        System.out.println("Value: " + value);
-        glucoseDetectorTask.amount += value;
-//        glucoseDetectorTask.amount += GLUCOSE_DECREMENT[1];
+        double deviationValue;
+        if (deviationsEnabled) {
+            // Regardless of anything, glucose always drops with some randomness
+            deviationValue = random.nextFloat() * (GLUCOSE_DECREMENT[2] - GLUCOSE_DECREMENT[0]) + GLUCOSE_DECREMENT[0];
+        } else {
+            deviationValue = GLUCOSE_DECREMENT[1];
+        }
+        glucoseDetectorTask.amount += deviationValue;
 
         currentTime += interval;
     }

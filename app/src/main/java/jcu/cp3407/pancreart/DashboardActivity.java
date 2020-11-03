@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PersistableBundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.*;
@@ -25,8 +24,6 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.google.android.material.navigation.NavigationView;
-
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -35,8 +32,6 @@ import java.util.Timer;
 import jcu.cp3407.pancreart.data.LoginDataSource;
 import jcu.cp3407.pancreart.data.LoginRepository;
 import jcu.cp3407.pancreart.data.model.LoggedInUser;
-import jcu.cp3407.pancreart.model.Event;
-import jcu.cp3407.pancreart.model.PodHandler;
 import jcu.cp3407.pancreart.ui.login.LoginActivity;
 
 public class DashboardActivity extends AppCompatActivity {
@@ -57,6 +52,9 @@ public class DashboardActivity extends AppCompatActivity {
     private ProgressBar insulinProgressBar;
     private ProgressBar batteryProgressBar;
 
+    Drawable breachedThresholdColour;
+    Drawable middleThresholdColour;
+
     private TextView glucoseTextView;
     private TextView insulinTextView;
     private TextView batteryTextView;
@@ -67,9 +65,11 @@ public class DashboardActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 0;
     private final int MY_PERMISSIONS_READ_EXTERNAL_STORAGE = 0;
+
     private NotificationManagerCompat notificationManager;
-    private NotificationCompat.Builder glucoseLow, glucoseHigh, glucoseNormal, podBatteryLow,
-            sensorFailure, insulinReservoirLow, deliveryFailure, insulinLow;
+    private NotificationCompat.Builder glucoseLow, glucoseHigh, podBatteryLow, insulinReservoirLow;
+
+    PendingIntent pendingIntent;
 
     enum NotificationId {
         BATTERY_LOW,
@@ -77,15 +77,21 @@ public class DashboardActivity extends AppCompatActivity {
         INSULIN_RESERVOIR,
     }
 
+    static List<Event> events = new ArrayList<>();
+
     int lastBatteryPercent;
     int lastGlucoseAmount;
     int lastInsulinPercent;
+
+    final int[] glucoseThreshold = {60, 180};
+    final int percentageMiddleThreshold = 50;
+    final int percentageLowThreshold = 25;
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle bundle) {
         super.onSaveInstanceState(bundle);
 
-        if (user != null && bundle != null) {
+        if (user != null) {
             bundle.putString("user_name", user.getName());
             bundle.putLong("user_id", user.getId());
             bundle.putString("user_email", user.getEmail());
@@ -98,10 +104,14 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(bundle);
 
         if (bundle != null) {
-            String userName = bundle.getString("user_name");
-            long userId = bundle.getLong("user_id");
-            String userEmail = bundle.getString("user_email");
-            String userToken = bundle.getString("user_token");
+            String userName = bundle.getString("user_name", null);
+            if (userName != null) {
+                System.out.println("\n\nUSER EXISTED\n\n");
+                long userId = bundle.getLong("user_id");
+                String userEmail = bundle.getString("user_email");
+                String userToken = bundle.getString("user_token");
+                user = new LoggedInUser(userId, userName, userEmail, userToken);
+            }
         }
 
         setContentView(R.layout.activity_dashboard);
@@ -111,8 +121,12 @@ public class DashboardActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        setupViews();
-        setProgressBars();
+        glucoseProgressBar = findViewById(R.id.glucose_circle_progress_bar);
+        insulinProgressBar = findViewById(R.id.insulin_circle_progress_bar);
+        batteryProgressBar = findViewById(R.id.battery_circle_progress_bar);
+        glucoseTextView = findViewById(R.id.glucose_text);
+        insulinTextView = findViewById(R.id.insulin_text);
+        batteryTextView = findViewById(R.id.battery_text);
 
 //        setupBluetooth(); // todo: forget about BT for now
 
@@ -129,12 +143,18 @@ public class DashboardActivity extends AppCompatActivity {
         batteryProgressBar.setMax(100);
         glucoseProgressBar.setMax(300);
         insulinProgressBar.setMax(100);
+
+        breachedThresholdColour = ResourcesCompat.getDrawable(
+                getResources(),
+                R.drawable.circle_breached_threshold_foreground,
+                null);
+        middleThresholdColour = ResourcesCompat.getDrawable(
+                getResources(),
+                R.drawable.circle_middle_threshold_foreground,
+                null);
     }
 
-    static List<Event> events = new ArrayList<>();
-
     private void setupRegulator() {
-
         // Instantiate a timer that is used to control the threads
         Timer timer = new Timer();
 
@@ -143,9 +163,11 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Setup simulator with various settings
         Simulator simulator = new Simulator(timer, speed);
+        simulator.deviationsEnabled = true;
+        simulator.logEnabled = false;
         simulator.batteryPowerTask.charging = false;
         simulator.batteryPowerTask.percent = 100;
-        simulator.glucoseDetectorTask.amount = 100;
+        simulator.glucoseDetectorTask.amount = 140;
         simulator.insulinInjectorTask.reservoirAmount = 2000;
         simulator.currentTime = 4 * 60 * 60;
 
@@ -211,10 +233,10 @@ public class DashboardActivity extends AppCompatActivity {
             public void run() {
                 runOnUiThread(() -> {
                     lastBatteryPercent = (int) simulator.batteryPowerTask.percent;
-                    updateBatteryProgressBar((int) lastBatteryPercent);
-                    updateGlucoseProgressBar((int) lastGlucoseAmount);
+                    setBatteryProgressBarValue((int) lastBatteryPercent);
+                    setGlucoseProgressBarValue((int) lastGlucoseAmount);
                     lastInsulinPercent = 100 / 2000 * (int) simulator.insulinInjectorTask.reservoirAmount;
-                    updateInsulinProgressBar((int) lastInsulinPercent);
+                    setInsulinProgressBarValue((int) lastInsulinPercent);
                 });
             }
         }.initiate();
@@ -225,17 +247,18 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onGlucoseDetected(double amount) {
                 super.onGlucoseDetected(amount);
+                long time = startTime + simulator.currentTime + (simulator.days * 24 * 60 * 60);
                 events.add(new Event(
                         0,
                         1,
                         Event.Type.GLUCOSE_READING,
-                        startTime + simulator.currentTime + (simulator.days * 24 * 60 * 60),
+                        time,
                         amount)
                 );
                 lastGlucoseAmount = (int) amount;
-                if (amount > 160) {
+                if (amount > glucoseThreshold[1]) {
                     notificationManager.notify(NotificationId.GLUCOSE_AMOUNT.ordinal(), glucoseHigh.build());
-                } else if (amount < 60) {
+                } else if (amount < glucoseThreshold[0]) {
                     notificationManager.notify(NotificationId.GLUCOSE_AMOUNT.ordinal(), glucoseLow.build());
                 }
 
@@ -247,11 +270,12 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onInsulinInjected(double amount) {
                 super.onInsulinInjected(amount);
+                long time = startTime + simulator.currentTime + (simulator.days * 24 * 60 * 60);
                 events.add(new Event(
                         0,
                         1,
                         Event.Type.INSULIN_INJECTION,
-                        calendar.getTime().getTime() + simulator.currentTime,
+                        time,
                         amount)
                 );
             }
@@ -278,7 +302,14 @@ public class DashboardActivity extends AppCompatActivity {
                 }
                 super.onRegulateDosage();
                 if (lastGlucoseAmount > 150) {
-                    simulator.insulinInjectorTask.dose(lastGlucoseAmount / 10);
+                    simulator.insulinInjectorTask.dose(lastGlucoseAmount / 10d);
+                }
+                // Cheat glucose levels
+                if (lastGlucoseAmount > 500) {
+                    simulator.glucoseDetectorTask.amount = 490;
+                }
+                if (lastGlucoseAmount < 15) {
+                    simulator.glucoseDetectorTask.amount = 20;
                 }
             }
         };
@@ -290,19 +321,32 @@ public class DashboardActivity extends AppCompatActivity {
         regulator.initiate();
     }
 
-    private void updateBatteryProgressBar(int percent) {
-        batteryProgressBar.setProgress((int) percent);
-        batteryTextView.setText(String.valueOf(percent));
+    private void setBatteryProgressBarValue(int value) {
+        batteryProgressBar.setProgress(value);
+        batteryTextView.setText(String.valueOf(value));
+        if (value >= percentageLowThreshold && value < percentageMiddleThreshold) {
+            batteryProgressBar.setProgressDrawable(middleThresholdColour);
+        } else if (value < percentageLowThreshold) {
+            batteryProgressBar.setProgressDrawable(breachedThresholdColour);
+        }
     }
 
-    private void updateGlucoseProgressBar(int amount) {
-        glucoseProgressBar.setProgress(amount);
-        glucoseTextView.setText(String.valueOf(amount));
+    private void setGlucoseProgressBarValue(int value) {
+        glucoseProgressBar.setProgress(value);
+        glucoseTextView.setText(String.valueOf(value));
+        if (value >= glucoseThreshold[1] || value < glucoseThreshold[0]) {
+            glucoseProgressBar.setProgressDrawable(breachedThresholdColour);
+        }
     }
 
-    private void updateInsulinProgressBar(int amount) {
-        insulinProgressBar.setProgress(amount);
-        insulinTextView.setText(String.valueOf(amount));
+    private void setInsulinProgressBarValue(int value) {
+        insulinProgressBar.setProgress(value);
+        insulinTextView.setText(String.valueOf(value));
+        if (value >= percentageLowThreshold && value < percentageMiddleThreshold) {
+            insulinProgressBar.setProgressDrawable(middleThresholdColour);
+        } else if (value < percentageLowThreshold) {
+            insulinProgressBar.setProgressDrawable(breachedThresholdColour);
+        }
     }
 
     // Here are all bluetooth events to handle
@@ -312,7 +356,6 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message message) {
                 super.handleMessage(message);
-
                 switch (message.what) {
                     case Bluetooth.MESSAGE_READ: {
                         String data = new String((byte[]) message.obj);
@@ -344,7 +387,6 @@ public class DashboardActivity extends AppCompatActivity {
                     case Bluetooth.ADAPTER_DISABLED: {
                         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                         startActivityForResult(intent, Intents.REQUEST_ENABLE_BT.ordinal());
-
                         // todo: consider requesting user to go to settings instead
 //                        intent = new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
 //                        startActivity(intent);
@@ -406,54 +448,6 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
-    private void setProgressBars() {
-        final int glucoseLowThreshold = 3;
-        final int glucoseHighThreshold = 7;
-        final int percentageMiddleThreshold = 50;
-        final int percentageLowThreshold = 25;
-        final Drawable breachedThresholdColour = ResourcesCompat.getDrawable(
-                getResources(),
-                R.drawable.circle_breached_threshold_foreground,
-                null);
-        final Drawable middleThresholdColour = ResourcesCompat.getDrawable(
-                getResources(),
-                R.drawable.circle_middle_threshold_foreground,
-                null);
-
-//        // Determine which colour to set.
-//        if (glucoseLevel >= glucoseHighThreshold || glucoseLevel <= glucoseLowThreshold) {
-//            // Set colour to breached threshold.
-//            glucoseProgressBar.setProgressDrawable(breachedThresholdColour);
-//        }
-//
-//        if (insulinLevel >= percentageLowThreshold && insulinLevel < percentageMiddleThreshold) {
-//            // Set colour to middle threshold.
-//            insulinProgressBar.setProgressDrawable(middleThresholdColour);
-//        } else if (insulinLevel < percentageLowThreshold) {
-//            // Set colour to breached threshold.
-//            insulinProgressBar.setProgressDrawable(breachedThresholdColour);
-//        }
-//
-//        if (batteryLevel >= percentageLowThreshold && batteryLevel < percentageMiddleThreshold) {
-//            // Set colour to middle threshold.
-//            batteryProgressBar.setProgressDrawable(middleThresholdColour);
-//        } else if (batteryLevel < percentageLowThreshold) {
-//            // Set colour to breached threshold.
-//            batteryProgressBar.setProgressDrawable(breachedThresholdColour);
-//        }
-    }
-
-    private void setupViews() {
-        glucoseProgressBar = findViewById(R.id.glucose_circle_progress_bar);
-        insulinProgressBar = findViewById(R.id.insulin_circle_progress_bar);
-        batteryProgressBar = findViewById(R.id.battery_circle_progress_bar);
-        glucoseTextView = findViewById(R.id.glucose_text);
-        insulinTextView = findViewById(R.id.insulin_text);
-        batteryTextView = findViewById(R.id.battery_text);
-    }
-
-    PendingIntent pendingIntent;
-
     private void setupNotifications() {
         Intent intent = new Intent(this, DashboardActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -486,12 +480,10 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void enableReadStoragePermission() {
-        // Check if permission is in current activity.
         int permission = ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, request permission.
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -500,12 +492,10 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void enableWriteStoragePermission() {
-        // Check if permission is in current activity.
         int permission = ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, request permission.
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},

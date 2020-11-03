@@ -5,7 +5,7 @@ import java.util.*;
 public class Regulator extends Task {
 
     Regulator(Timer timer, double speed) {
-        super(timer, 60 * 10 / Simulator.DELAY_RATE, speed);
+        super(timer, 60 * 10, speed);
     }
 
     @Override

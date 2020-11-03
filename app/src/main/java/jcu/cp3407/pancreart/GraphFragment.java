@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import jcu.cp3407.pancreart.model.Event;
-
 public class GraphFragment extends Fragment implements OnChartValueSelectedListener {
 
     LineChart chart;

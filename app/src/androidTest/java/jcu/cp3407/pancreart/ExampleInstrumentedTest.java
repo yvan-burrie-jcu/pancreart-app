@@ -13,8 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import java.util.List;
 
-import jcu.cp3407.pancreart.model.Event;
-
 import static org.junit.Assert.assertEquals;
 
 /**

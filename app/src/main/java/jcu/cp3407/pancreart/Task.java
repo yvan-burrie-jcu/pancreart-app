@@ -1,7 +1,5 @@
 package jcu.cp3407.pancreart;
 
-import jcu.cp3407.pancreart.model.PodHandler;
-
 import java.util.*;
 
 public abstract class Task extends TimerTask {

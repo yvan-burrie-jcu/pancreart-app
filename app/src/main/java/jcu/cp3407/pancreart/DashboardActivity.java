@@ -54,6 +54,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     Drawable breachedThresholdColour;
     Drawable middleThresholdColour;
+    Drawable safeThresholdColour;
 
     private TextView glucoseTextView;
     private TextView insulinTextView;
@@ -151,6 +152,10 @@ public class DashboardActivity extends AppCompatActivity {
         middleThresholdColour = ResourcesCompat.getDrawable(
                 getResources(),
                 R.drawable.circle_middle_threshold_foreground,
+                null);
+        safeThresholdColour = ResourcesCompat.getDrawable(
+                getResources(),
+                R.drawable.circle_progress_foreground,
                 null);
     }
 
@@ -328,6 +333,8 @@ public class DashboardActivity extends AppCompatActivity {
             batteryProgressBar.setProgressDrawable(middleThresholdColour);
         } else if (value < percentageLowThreshold) {
             batteryProgressBar.setProgressDrawable(breachedThresholdColour);
+        } else {
+            batteryProgressBar.setProgressDrawable(safeThresholdColour);
         }
     }
 
@@ -336,6 +343,8 @@ public class DashboardActivity extends AppCompatActivity {
         glucoseTextView.setText(String.valueOf(value));
         if (value >= glucoseThreshold[1] || value < glucoseThreshold[0]) {
             glucoseProgressBar.setProgressDrawable(breachedThresholdColour);
+        } else {
+            glucoseProgressBar.setProgressDrawable(safeThresholdColour);
         }
     }
 
@@ -346,6 +355,8 @@ public class DashboardActivity extends AppCompatActivity {
             insulinProgressBar.setProgressDrawable(middleThresholdColour);
         } else if (value < percentageLowThreshold) {
             insulinProgressBar.setProgressDrawable(breachedThresholdColour);
+        } else {
+            insulinProgressBar.setProgressDrawable(safeThresholdColour);
         }
     }
 

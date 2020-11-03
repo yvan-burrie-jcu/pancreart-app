@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -156,7 +157,6 @@ class Storage extends SQLiteOpenHelper {
 //    }
 
     private void getEventsFromServer(long startTime, long endTime) throws JSONException, IOException {  // add user auth code parameter
-
         // Retrieve logged in user auth code
         String accessToken = "AIDUS MCGLEETUS";
 
@@ -193,17 +193,35 @@ class Storage extends SQLiteOpenHelper {
     }
 
     private void storeEvents(JSONObject receivedData) throws JSONException {
+        // Store in SQLite database
         final int OWNER = 2;
-        long userId = receivedData.getLong("userId");
         Event.Type type = Event.Type.GLUCOSE_READING;
 
         if (receivedData.has("events")) {
-            JSONArray eventsBuffer = receivedData.getJSONArray("events");
-            for (int i = 0; i < eventsBuffer.length(); i++) {
-                JSONObject eventData = eventsBuffer.getJSONObject(i);
+            JSONArray dataArray = receivedData.getJSONArray("events");
+            for (int i = 0; i < dataArray.length(); i++) {
+                // Get Individual Event JSONObject
+                JSONObject eventData = dataArray.getJSONObject(i);
 
-                long time = eventData.getLong("time");
-                double amount = eventData.getDouble("amount");
+                // Transform to JSONArray
+                JSONArray eventArray = eventData.getJSONArray("event");
+                long userId = 0;
+                long time = 0;
+                double amount = 0;
+
+                // Get each value within event JSONArray
+                for (int j = 0; j < eventArray.length(); j++) {
+                    JSONObject value = eventArray.getJSONObject(j);
+
+                    if (value.has("userId")) {
+                        userId = value.getLong("userId");
+                    } else if (value.has("time")) {
+                        time = value.getLong("time");
+                    } else if (value.has("amount")) {
+                        amount = value.getDouble("amount");
+                    }
+                }
+                // Create event and store in database
                 Event event = new Event(userId, OWNER, type, time, amount);
                 addEvent(event);
             }

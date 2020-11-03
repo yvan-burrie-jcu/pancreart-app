@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:orientation="vertical"
-    android:background="@color/lightGray">
+    android:background="@color/white">
 
     <DatePicker
         android:id="@+id/date_picker"

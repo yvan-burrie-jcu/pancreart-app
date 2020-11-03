@@ -11,12 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Stack;
 
 import jcu.cp3407.pancreart.model.Event;
 
